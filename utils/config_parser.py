@@ -18,14 +18,14 @@ import treelib
 #         # every broker must know own pc name
 # }
 
-class ConfigParser(dict):
+class ConfigParser():
     """
 
     """
     # __slots__ = ()
 
     def __init__(self):
-        super().__init__()
+        # super().__init__()
         self.config = None
         pass
 
@@ -36,15 +36,30 @@ class ConfigParser(dict):
         self.exp_tree = treelib.Tree()
         self.exp_tree.create_node("{} - {}".format("experiment", self.config["experiment"]), 1)
         counter = 1
-        for addr in self.config["addresses"]:
+        last_counter = counter
+        for broker in self.config["brokers"]:
+            print(broker)
             counter = counter + 1
-            self.exp_tree.create_node("{} - {}".format(addr, self.config["addresses"][addr]), counter, parent=1)
+            self.exp_tree.create_node("{} - {}".format(
+                broker, self.config["brokers"][broker]), counter, parent=1)
+            last_counter = counter
+            for node in self.config["brokers"][broker]["nodes"]:
+                counter = counter + 1
+                self.exp_tree.create_node("{} - {}".format(
+                    node,
+                    self.config["brokers"][broker]["nodes"][node]), counter, parent=last_counter)
 
     def init_from_yaml(self, path):
         pass  # todo
 
-    def get_machines(self):
-        return self.config["addresses"]
+    def get_brokers(self):
+        return self.config["brokers"]
+
+    def get_nodes(self, broker):
+        return self.config["brokers"][broker]["nodes"]
+
+    def get_devices(self, broker, node):
+        return self.config["brokers"][broker]["nodes"][node]
 
     def get_exp_info(self):
         return self.config["experiment"]
@@ -57,6 +72,7 @@ class ConfigParser(dict):
 # https://stackoverflow.com/questions/682504/what-is-a-clean-pythonic-way-to-have-multiple-constructors-in-python
 # TODO
 
+
 if __name__ == "__main__":
     # example:
 
@@ -64,15 +80,31 @@ if __name__ == "__main__":
 
     exp_config = {
         "experiment": "test1",
-        "addresses":
-            {
-                "pc1": "tcp://192.168.100.4:5566",
-                "pc2": "tcp://192.168.100.8:5566"
+        "description": "nice test experiment",
+        "brokers":
+        {
+            "pc1": {
+                "addr": "tcp://192.168.100.4:5566", "nodes":
+                {
+                    "node1": {"description": "temp", "devices": {}},
+                    "node2": {"description": "temp", "devices": {}},
+                    "node3": {"description": "temp", "devices": {}},
+                 },
+            },
+            "pc2": {
+                "addr": "tcp://192.168.100.8:5566", "nodes":
+                {
+                    "node6": {"description": "temp", "devices": {}},
+                    "node4": {"description": "temp", "devices": {}},
+                    "node5": {"description": "temp", "devices": {}},
+                },
             }
-        # pc_name : tcp addr and port
-        # every broker must know own pc name
+        }
     }
+    print(exp_config["brokers"]["pc1"]["addr"])
     c.init_from_dict(exp_config)
     # c = ConfigParser(exp_config)
+    print(c.get_brokers())
+    print(c.get_nodes("pc1"))
     c.show_pretty_graph()
 

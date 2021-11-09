@@ -44,6 +44,30 @@ except ModuleNotFoundError:
 
 
 class UserNode(ABC, Process):
+    """
+
+    """
+
+    # ========= abstract methods, those must be redefined by user ==========
+    @abstractmethod
+    def user_run(self):
+        # here user must do all preparations
+        # also create and start all PeriodicCallback tasks
+        # like that:
+        # self.check_timer = PeriodicCallback(self.on_timer, self.period)
+        # self.check_timer.start()
+        pass
+
+    @abstractmethod
+    def user_request_parser(self, from_addr, command, msg_dict):
+        # here user can add custom parsing of received message
+        pass
+
+    @abstractmethod
+    def user_response_parser(self, from_addr, command, msg_dict):
+        # here user can add custom parsing of received answer for his message
+        pass
+
     def __init__(self, endpoint, name, is_daemon):
 
         Process.__init__(self, daemon=is_daemon)
@@ -51,18 +75,16 @@ class UserNode(ABC, Process):
         self.logger = PrintLogger(self.name)
         self.logger("start init")
         self._endpoint = endpoint
-        # self.back_port = back_port
+        # container to keep all local devices in one place
+        self._devices = []
+
         # Prepare our context and sockets
         self.context = zmq.Context()
-        self._socket= None
-        # self.resp_socket = None
-        # self.timer_interval = 1000
-        # self.check_timer = None
-        # self.period = period
+        self._socket = None
         self.main_stream = None
         self.logger("end init")
 
-        self._description = "relay handler node"
+        self._description = "base node"
 
     # ========= tech methods, those must not be redefined by user ==========
     def parse_msg(self, msg):
@@ -125,17 +147,14 @@ class UserNode(ABC, Process):
         self.main_stream.on_recv(self.reqv_callback)
         self.broker = self.find_broker()
 
-    def start_endless_loop(self):
-        # users run method must be finished with
-        self.loop = IOLoop.current()   # do we need it ?
-        self.logger("go to loop")
-        self.loop.start()
-
     def run(self):
         # this method calls when user do node.start()
         self.prepare_run()
         self.user_run()
-        self.start_endless_loop()
+
+        self.loop = IOLoop.current()  # do we need it ?
+        self.logger("go to loop")
+        self.loop.start()
 
     def reqv_callback(self, msg):
         self.logger(" reqv callback")
@@ -149,12 +168,7 @@ class UserNode(ABC, Process):
             to_addr = from_addr
             
             self.send(to_addr, "RESP", msg_id, "ACK")
-            # broker_addr = self.broker.encode('ascii')
 
-            # msg_body = "RESP from USER_{} to {}: {}".format(self.name, to_addr, self._description).encode('ascii')
-            # msg = [broker_addr, b'', to_addr, b'', msg_body]
-            
-            # self.main_stream.send_multipart(msg)
 
         elif command == "RESP":
             # it means that it it resp to us and we must not answer
@@ -169,27 +183,6 @@ class UserNode(ABC, Process):
             self.logger(" command {} is not system, trying to use users handler".format(self.name, command))
             self.user_request_parser(from_addr, command, msg_dict)
 
-    # ========= abstract methods, those must be redefined by user ==========
-
-
-    @abstractmethod
-    def user_run(self):
-        # here user must do all preparations
-        # also create and start all PeriodicCallback tasks
-        # like that:
-        # self.check_timer = PeriodicCallback(self.on_timer, self.period)
-        # self.check_timer.start()
-        pass
-
-    @abstractmethod
-    def user_request_parser(self, from_addr, command, msg_dict):
-        # here user can add custom parsing of received message
-        pass
-
-    @abstractmethod
-    def user_response_parser(self, from_addr, command, msg_dict):
-        # here user can add custom parsing of received answer for his message
-        pass
 
 
 

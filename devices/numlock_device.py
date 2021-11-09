@@ -64,7 +64,7 @@ class NumLockDevice(BaseDevice):
             time.sleep(0.5)
             self._status = "paused"
 
-        if command == "set":
+        if command == "set_state":
             print("command == 'set_state'")
             new_state = int(kwargs["new_state"])
             self.set_led(new_state)
@@ -90,9 +90,9 @@ if __name__ == "__main__":
     c = NumLockDevice("led1")
     print(c.call("info"))
     while True:
-        c.call("set", **{"new_state":1})
+        c.call("set_state", **{"new_state":1})
         time.sleep(1)
-        c.call("set", **{"new_state":0})
+        c.call("set_state", **{"new_state":0})
         time.sleep(1)
     # c.call("start")
     # print(c.call("get_state"))

@@ -93,13 +93,26 @@ if __name__ == "__main__":
 
     exp_config = {
         "experiment": "test1",
-        "addresses":
-            {
-                "pc1": "tcp://192.168.100.4:5566",
-                "pc2": "tcp://192.168.100.8:5566"
+        "description": "nice test experiment",
+        "brokers":
+        {
+            "pc1": {
+                "addr": "tcp://192.168.100.4:5566", "nodes":
+                {
+                    "node1": {"description": "temp", "devices": {}},
+                    "node2": {"description": "temp", "devices": {}},
+                    "node3": {"description": "temp", "devices": {}},
+                 },
+            },
+            "pc2": {
+                "addr": "tcp://192.168.100.8:5566", "nodes":
+                {
+                    "node6": {"description": "temp", "devices": {}},
+                    "node4": {"description": "temp", "devices": {}},
+                    "node5": {"description": "temp", "devices": {}},
+                },
             }
-        # pc_name : tcp addr and port
-        # every broker must know own pc name
+        }
     }
     c = ConfigParser()
     c.init_from_dict(exp_config)

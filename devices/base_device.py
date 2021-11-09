@@ -6,6 +6,10 @@ from zmq.eventloop.zmqstream import ZMQStream
 from multiprocessing import Process
 from abc import ABC, abstractmethod, abstractproperty
 
+import inspect
+from functools import wraps
+from inspect import Parameter, Signature
+import pickle, sys
 
 class BaseDevice(ABC):
     """
@@ -68,7 +72,150 @@ class BaseDevice(ABC):
             self.__dict__[key] = value
 
 
+class VerySmartDevice ():
+    """
+
+    """
+    # # abstract methods, those must be overriden in child class
+    # @abstractmethod
+    # def device_commands_handler(self, command, **kwargs):
+    #     """
+    #     here developer can add handling of its own commands
+    #     :param command:
+    #     :param kwargs:
+    #     :return:
+    #     """
+    #     pass
+
+    # technical methods, those provide base functionality
+    def __init__(self, name):
+        self.name = name
+        self._description = "Abstract BaseDevice class"  # here we can put device description
+        # for more convenient work of the remote operator
+        self._available_states = [
+            "not_started",  # device is ok, but it is still not started by user
+            "paused",  # device is ok, but user paused it manually
+            "finished",  # device is ok and it was successfully finished by user
+            "works",  # device at work, all things goes ok
+            "warning",  # small error, but you have to know about it
+            "error",  # big error, but device still can work somehow
+            "critical"  # fatal error, device is dead
+        ]
+        self._status = "not_started"
+        self._available_commands = [
+            "info",  # command for getting base description of device
+            "start",  # command to do some mystical preparation work like low-level calibration
+            # or simple checking that real sensor is alive
+            "stop",  # cpmmand to do some mystical pausing work like closing valves or smth
+            "kill"  # command to fully stop work of device
+        ]
+        # also user must add here some special commands like "get_data" or "calibrate" or smth
+        # and write handlers for them in device_commands_handler
+
+    def _create_reqv(self, _cls, ):
+        reqv = None
+        return reqv
+
+    def method(self,  param1: int, param2: str, remote: bool = False):
+        """
+        haha gayyyy
+        :param remote:
+        :param param1:
+        :param param2:
+        :return:
+        """
+        if not remote:
+            # do some regular work
+            return param1
+        else:
+            frame = inspect.currentframe()
+            args = inspect.getargvalues(frame)
+            # print(args)
+            # print(args.args)
+            return_params = dict()
+            args.args.remove('self')
+            args.args.remove('remote')
+
+            important_params = args.args
+            raw_args = args.locals
+
+            for param in important_params:
+                return_params.update({param: raw_args[param]})
+
+            funcname = inspect.currentframe().f_code.co_name
+            classname = type(self).__name__
+
+            return classname, funcname, return_params
+            # it is remote call, so we need to return reqv object
+            # with info about our device, method and params, those user
+            # put here when he call us
+
+    # def call(self, command, remote=True, **kwargs):
+    #     if remote:
+    #         return self._create_reqv(self, )
+    #     if command == "info":
+    #         info = {
+    #             "name": self._name,
+    #             "info": self._description,
+    #             "status": self._status,
+    #             "commands": self._available_commands
+    #         }
+    #         return info
+    #     else:
+    #         # must be redefined by user
+    #         return self.device_commands_handler(command, **kwargs)
+
 
 
 if __name__ == "__main__":
-    pass
+
+
+    # lets prepsre node 2
+    class Node():
+        def __init__(self):
+            self.dev1 = VerySmartDevice("second")
+            self.dev2 = VerySmartDevice("third")
+            self.devices = [self.dev2, self.dev1]
+
+        def parse_messages(self, msg: bytes):
+            print("node parses msgs:")
+            name, data = pickle.loads(msg)
+            print(data)
+
+            for dev in self.devices:
+                if type(dev).__name__ == data[0] and dev.name == name:
+                    func = getattr(dev, data[1])
+                    result = func(**data[2])
+                    return result
+
+
+
+    # in first node
+    c = VerySmartDevice("first")
+    # local call returns result immediately
+    print(c.method(remote=False, param1=10, param2="ghj"))
+    # remote call returns smart tuple to use in another node
+    msg_data = c.method(remote=True, param1=15, param2="99999")
+    # node serializes it
+    serialized_footprint = pickle.dumps(("second", msg_data))
+    # then node1 somehow sends it to  node2
+
+    # sending throw all brokers and networks
+
+
+
+
+
+
+    # node2 receives it and deserializes msg_body
+    node2 = Node()
+    print(node2.parse_messages(serialized_footprint))
+    # if we have lots of those devices with same class type,
+    # we can find the needed one by name
+    # then we have to call
+    # class_method = getattr(self, methodname)
+    #
+    # result = class_method(an_object)
+    # now it
+
+
