@@ -7,7 +7,7 @@ import random, uuid
 
 try:
     from low_level_drivers.virtual_device_driver import VirtualDeviceHandler
-    from nodes.node import UserNode
+    from nodes.node import BaseNode
 except ModuleNotFoundError:
     # here we trying to manually add our lib path to python path
     abspath = os.path.abspath("..")
@@ -22,7 +22,7 @@ except ModuleNotFoundError:
 
 
 # # lets create custom node, based on base node class
-class CustomNode(UserNode):
+class CustomNode(BaseNode):
     def __init__(self, front_endpoint, name, is_daemon):
         super().__init__(front_endpoint, name, is_daemon)
 
@@ -41,16 +41,16 @@ class CustomNode(UserNode):
         msg_body = "INFO from {} to {}: you are gay".format(self.name, to_addr).encode('ascii')
         self.send(to_addr, command="INFO", msg_id=uuid.uuid1(), data = msg_body)
 
-    def user_run(self):
+    def custom_preparation(self):
         self.check_timer = PeriodicCallback(self.on_timer, 1000)
         self.check_timer.start()
 
 
-    def user_request_parser(self, from_addr, command, msg_dict):
+    def custom_request_parser(self, from_addr, command, msg_dict):
         # here user can add custom parsing of received message
         pass
 
-    def user_response_parser(self, from_addr, command, msg_dict):
+    def custom_response_parser(self, from_addr, command, msg_dict):
         # here user can add custom parsing of received answer for his message
         pass
 
