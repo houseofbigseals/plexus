@@ -6,15 +6,15 @@ import time
 
 # custom path imports
 try:
-    from nodes.node import BaseNode, PeriodicCallback
-    from nodes.broker import BrokerNode
+    from nodes.node2 import BaseNode, PeriodicCallback
+    # from nodes.broker import BrokerNode
     from devices.numlock_device import NumLockDevice
 except ModuleNotFoundError:
     # here we trying to manually add our lib path to python path
     abspath = os.path.abspath("..")
     sys.path.insert(0, "{}/nodes".format(abspath))
-    from node import BaseNode, PeriodicCallback
-    from broker import BrokerNode
+    from node2 import BaseNode, PeriodicCallback
+    # from broker import BrokerNode
     sys.path.insert(0, "{}/devices".format(abspath))
     from numlock_device import NumLockDevice
 
@@ -33,8 +33,8 @@ class TestLedNode(BaseNode):
     """
 
     """
-    def __init__(self, endpoint: str, broker_name: str, name: str):
-        super().__init__(endpoint=endpoint, broker_name=broker_name, name=name)
+    def __init__(self, endpoint: str, name: str, list_of_nodes: list, is_daemon: bool = True):
+        super().__init__(endpoint, name, list_of_nodes, is_daemon)
         self._led_device = NumLockDevice(name="numlock")
         self._devices.append(self._led_device)
 
@@ -46,24 +46,27 @@ class TestLedNode(BaseNode):
         # self.check_timer.start()
         pass
 
-    def custom_request_parser(self, from_addr: str, msg_dict: dict):
+    def custom_request_parser(self, stream, from_addr: str, msg_dict: dict):
         # here user can add custom parsing of received message
         pass
 
-    def custom_response_parser(self, from_addr: str, msg_dict: dict, reqv_msg):
+    def custom_response_parser(self, stream,  from_addr: str, msg_dict: dict, reqv_msg):
         # here user can add custom parsing of received answer for his message
         pass
 
 
 if __name__ == '__main__':
-    br = BrokerNode(name="broker1", endpoint="tcp://192.168.100.4:5566")
-    n1 = TestLedNode(name="node1", endpoint="tcp://192.168.100.4:5566", broker_name="broker1")
-    n2 = TestLedNode(name="node2", endpoint="tcp://192.168.100.4:5566", broker_name="broker1")
-    n3 = TestLedNode(name="node3", endpoint="tcp://192.168.100.4:5566", broker_name="broker1")
-    br.start()
+    list_of_nodes1 = [
+        {"name": "node1", "address": "tcp://192.168.100.4:5566"},
+        {"name": "node2", "address": "tcp://192.168.100.4:5567"},
+        {"name": "node3", "address": "tcp://192.168.100.4:5568"}
+    ]
+    n1 = TestLedNode(name="node1", endpoint="tcp://192.168.100.4:5566", list_of_nodes=list_of_nodes1)
+    n2 = TestLedNode(name="node2", endpoint="tcp://192.168.100.4:5567", list_of_nodes=list_of_nodes1)
+    n3 = TestLedNode(name="node3", endpoint="tcp://192.168.100.4:5568", list_of_nodes=list_of_nodes1)
     n1.start()
     n2.start()
     time.sleep(5.2)
     n3.start()
-    br.join()
+    n3.join()
 
