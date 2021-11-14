@@ -83,7 +83,6 @@ class BaseNode(ABC, Process):
         {"name": "node100", "address": "tcp://192.168.100.4:5567"}
         ]
         :param endpoint:
-        :param broker_name:
         :param name:
         :param is_daemon:
         """
@@ -120,9 +119,10 @@ class BaseNode(ABC, Process):
         # lets create your main socket wit bind option
         self._socket = self.context.socket(zmq.ROUTER)
         self._socket.identity = "{}".format(self.name).encode('ascii')
+        self.logger("{}".format(self.name).encode('ascii'))
         self._socket.bind(self._endpoint)
         self.main_stream = ZMQStream(self._socket)
-        self.main_stream.on_recv(self.reqv_callback)
+        self.main_stream.on_recv_stream(self.reqv_callback)
 
         # then lets create lots of sockets for all other nodes from given list
         for n in self.list_of_nodes:
@@ -131,13 +131,18 @@ class BaseNode(ABC, Process):
                 #
 
                 new_socket = self.context.socket(zmq.ROUTER)
-                new_socket.identity = "{}".format(n["name"]).encode('ascii')
+                # new_socket.identity = "{}".format(n["name"]).encode('ascii')
+                new_socket.identity = "{}".format(self.name).encode('ascii')
+                self.logger("{}".format(n["name"]).encode('ascii'))
                 new_socket.connect(n["address"])
                 new_stream = ZMQStream(new_socket)
                 new_stream.on_recv_stream(self.reqv_callback)
+
                 # for now we will keep socket instance,  stream instance, last_time, and status
-                self._sockets.append([new_socket, new_stream, n["address"], datetime.datetime.now(), "not_started"])
-                self.logger([new_socket, new_stream, n["address"], datetime.datetime.now(), "not_started"])
+                self._sockets.append([n["name"], new_socket, new_stream, n["address"],
+                                      datetime.datetime.now(), "not_started"])
+                self.logger([n["name"], new_socket, new_stream, n["address"],
+                              datetime.datetime.now(), "not_started"])
 
 
         self.ping_timer = PeriodicCallback(self.on_ping_timer, self.ping_period)
@@ -254,9 +259,10 @@ class BaseNode(ABC, Process):
         # method to ping other sockets
         self.logger("try to send ping")
         for s in self._sockets:
-            # self._sockets.append([new_socket, new_stream, n["address"], datetime.datetime.now(), "not_started"])
             # print(s)
-            self.send(s[1], s[0].identity, s[0].identity, "PING", uuid.uuid1(), b'')
+            # self._sockets.append([n["name"], new_socket, new_stream, n["address"],
+            #                       datetime.datetime.now(), "not_started"])
+            self.send(s[2], s[0].encode('ascii'), s[0].encode('ascii'), "PING", uuid.uuid1(), b'')
 
     def store_awaiting_msg(self, msg: Any):
         # TODO

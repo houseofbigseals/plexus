@@ -57,16 +57,16 @@ class TestLedNode(BaseNode):
 
 if __name__ == '__main__':
     list_of_nodes1 = [
-        {"name": "node1", "address": "tcp://192.168.100.4:5566"},
-        {"name": "node2", "address": "tcp://192.168.100.4:5567"},
-        {"name": "node3", "address": "tcp://192.168.100.4:5568"}
+        {"name": "node1", "address": "tcp://192.168.100.8:5566"},
+        {"name": "node2", "address": "tcp://192.168.100.8:5567"},
+        {"name": "node3", "address": "tcp://192.168.100.8:5568"}
     ]
-    n1 = TestLedNode(name="node1", endpoint="tcp://192.168.100.4:5566", list_of_nodes=list_of_nodes1)
-    n2 = TestLedNode(name="node2", endpoint="tcp://192.168.100.4:5567", list_of_nodes=list_of_nodes1)
-    n3 = TestLedNode(name="node3", endpoint="tcp://192.168.100.4:5568", list_of_nodes=list_of_nodes1)
+    n1 = TestLedNode(name="node1", endpoint="tcp://192.168.100.8:5566", list_of_nodes=list_of_nodes1)
+    n2 = TestLedNode(name="node2", endpoint="tcp://192.168.100.8:5567", list_of_nodes=list_of_nodes1)
+    n3 = TestLedNode(name="node3", endpoint="tcp://192.168.100.8:5568", list_of_nodes=list_of_nodes1)
     n1.start()
     n2.start()
     time.sleep(5.2)
     n3.start()
-    n3.join()
+    n2.join()
 
