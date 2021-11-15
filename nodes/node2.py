@@ -188,6 +188,7 @@ class BaseNode(ABC, Process):
         empty = msg[1]
         msg_body = msg[2]
         msg_dict = pickle.loads(msg_body)
+        self.logger(msg_dict)
 
         msg_id = msg_dict["id"]
         command = msg_dict["command"]
@@ -196,6 +197,7 @@ class BaseNode(ABC, Process):
         msg_time = msg_dict["time"]
 
         # 1) lets check if it is response for one of our requests to another node
+        self.logger(msg_dict["command"])
 
         if command == "RESP":
             # so we dont care about "device" field
@@ -211,7 +213,7 @@ class BaseNode(ABC, Process):
 
         # there is a list of system commands that we use under the hood
         # 2) check if it is command to node
-        elif device_name == self.name:
+        elif device_name == self.name or device_name.decode('ascii') == self.name:
             # it means that msg was sent directly to node
             self.handle_system_msgs(stream, from_addr, msg_dict)
 
@@ -231,7 +233,7 @@ class BaseNode(ABC, Process):
                         self.send(stream, from_addr, device_name, "RESP", msg_id, pickle.dumps(error_str))
 
             # this is shit and we dont want to handle it
-            self.logger(" command {} is not system, trying to use user handler".format(self.name, command))
+            self.logger("command {} is not system, trying to use user handler".format(command))
             # 5) may be user want to handle it somehow
             self.custom_request_parser(stream, from_addr, msg_dict)
 
@@ -247,13 +249,32 @@ class BaseNode(ABC, Process):
                 "devices": self._devices
             }
             to_addr = from_addr
-            # we have to send resp with standard info about this node and its devices
+            self.send(stream=stream,
+                addr=to_addr,
+                device=self.name,
+                command="RESP",
+                msg_id=msg_dict["id"],
+                data=info)
+
+        if msg_dict["command"] == "PING":
+            # it means that it it reqv to us and we must answer
+            # in answer we need to send all info about node and its devices
+            self.logger("command PING received")
+            info = {
+                "name": self.name,
+                "status": self.status,
+                "devices": self._devices
+            }
+            to_addr = from_addr
             self.send(stream=stream,
                 addr=to_addr,
                 device=self.name,
                 command="RESP",
                 msg_id=msg_dict["id"],
                 data="ACK".encode())
+
+            # we have to send resp with standard info about this node and its devices
+
 
     def on_ping_timer(self):
         # method to ping other sockets
@@ -262,7 +283,8 @@ class BaseNode(ABC, Process):
             # print(s)
             # self._sockets.append([n["name"], new_socket, new_stream, n["address"],
             #                       datetime.datetime.now(), "not_started"])
-            self.send(s[2], s[0].encode('ascii'), s[0].encode('ascii'), "PING", uuid.uuid1(), b'')
+            self.send(stream=s[2], addr=s[0].encode('ascii'), device=s[0].encode('ascii'),
+                      command="PING", msg_id=uuid.uuid1(), data=b'')
 
     def store_awaiting_msg(self, msg: Any):
         # TODO

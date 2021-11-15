@@ -50,7 +50,6 @@ class NumLockDevice(BaseDevice):
                 self._status = "critical"
                 raise ConnectionError("ERROR {},\n mb try this:  'sudo apt install numlockx'".format(e))
 
-
         if command == "stop":
             print("command == 'stop'")
             # do stop program: blink 2 times in 2 secs
@@ -75,7 +74,7 @@ class NumLockDevice(BaseDevice):
             process = subprocess.Popen(["numlockx", "status"], stdout=subprocess.PIPE)
             output, error = process.communicate()
             # print(output, error)
-            self.led_state = output.decode("utf-8").split(" ")[2]
+            self.led_state = output.decode("utf-8").split(" ")[2].split("\n")[0]
             # print(self.led_state)
             return self.led_state
 
@@ -89,6 +88,7 @@ class NumLockDevice(BaseDevice):
 if __name__ == "__main__":
     c = NumLockDevice("led1")
     print(c.call("info"))
+    print(c.call("get_state"))
     while True:
         c.call("set_state", **{"new_state":1})
         time.sleep(1)

@@ -37,6 +37,8 @@ class TestLedNode(BaseNode):
         super().__init__(endpoint, name, list_of_nodes, is_daemon)
         self._led_device = NumLockDevice(name="numlock")
         self._devices.append(self._led_device)
+        self.led_period = 5000
+
 
     def custom_preparation(self):
         # here user must do all preparations
@@ -44,10 +46,24 @@ class TestLedNode(BaseNode):
         # like that:
         # self.check_timer = PeriodicCallback(self.on_timer, self.period)
         # self.check_timer.start()
-        pass
+        self.led_timer = PeriodicCallback(self.on_led_timer, self.led_period)
+        self.led_timer.start()
+
+    def on_led_timer(self):
+
+        res = self._led_device.call("get_state")
+        print("led device current state: {}".format(res))
+        if str(res) == "on":
+            self._led_device.call("set_state", **{"new_state": 0})
+            print("new led device current state: {}".format(self._led_device.call("get_state")))
+        if str(res) == "off":
+            self._led_device.call("set_state", **{"new_state": 1})
+            print("new led device current state: {}".format(self._led_device.call("get_state")))
+
 
     def custom_request_parser(self, stream, from_addr: str, msg_dict: dict):
         # here user can add custom parsing of received message
+        # if msg_dict["command"] ==
         pass
 
     def custom_response_parser(self, stream,  from_addr: str, msg_dict: dict, reqv_msg):
@@ -57,16 +73,17 @@ class TestLedNode(BaseNode):
 
 if __name__ == '__main__':
     list_of_nodes1 = [
-        {"name": "node1", "address": "tcp://192.168.100.8:5566"},
+        {"name": "node1", "address": "tcp://192.168.100.4:5566"},
         {"name": "node2", "address": "tcp://192.168.100.8:5567"},
         {"name": "node3", "address": "tcp://192.168.100.8:5568"}
     ]
-    n1 = TestLedNode(name="node1", endpoint="tcp://192.168.100.8:5566", list_of_nodes=list_of_nodes1)
-    n2 = TestLedNode(name="node2", endpoint="tcp://192.168.100.8:5567", list_of_nodes=list_of_nodes1)
-    n3 = TestLedNode(name="node3", endpoint="tcp://192.168.100.8:5568", list_of_nodes=list_of_nodes1)
+    n1 = TestLedNode(name=list_of_nodes1[0]['name'], endpoint=list_of_nodes1[0]['address'], list_of_nodes=list_of_nodes1)
+    # n2 = TestLedNode(name="node2", endpoint="tcp://192.168.100.4:5567", list_of_nodes=list_of_nodes1)
+    # n3 = TestLedNode(name="node3", endpoint="tcp://192.168.100.4:5568", list_of_nodes=list_of_nodes1)
     n1.start()
-    n2.start()
-    time.sleep(5.2)
-    n3.start()
-    n2.join()
+    # n2.start()
+    # time.sleep(5.2)
+    # n3.start()
+    # n2.join()
+    n1.join()
 
