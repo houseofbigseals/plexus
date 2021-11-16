@@ -7,15 +7,17 @@ import time
 # custom path imports
 try:
     from nodes.node2 import BaseNode, PeriodicCallback
+    from utils.console_client import PlexusUserApi
     # from nodes.broker import BrokerNode
     from devices.numlock_device import NumLockDevice
 except ModuleNotFoundError:
     # here we trying to manually add our lib path to python path
     abspath = os.path.abspath("..")
     sys.path.insert(0, "{}/nodes".format(abspath))
-    from node2 import BaseNode, PeriodicCallback
-    # from broker import BrokerNode
     sys.path.insert(0, "{}/devices".format(abspath))
+    sys.path.insert(0, "{}/utils".format(abspath))
+    from node2 import BaseNode, PeriodicCallback
+    from console_client import PlexusUserApi
     from numlock_device import NumLockDevice
 
 
@@ -77,12 +79,18 @@ if __name__ == '__main__':
         {"name": "node2", "address": "tcp://192.168.100.8:5567"},
         {"name": "node3", "address": "tcp://192.168.100.8:5568"}
     ]
-    n1 = TestLedNode(name=list_of_nodes1[0]['name'], endpoint=list_of_nodes1[0]['address'], list_of_nodes=list_of_nodes1)
+    n1 = TestLedNode(name=list_of_nodes1[0]['name'], endpoint=list_of_nodes1[0]['address'],
+                     list_of_nodes=list_of_nodes1)
     # n2 = TestLedNode(name="node2", endpoint="tcp://192.168.100.4:5567", list_of_nodes=list_of_nodes1)
     # n3 = TestLedNode(name="node3", endpoint="tcp://192.168.100.4:5568", list_of_nodes=list_of_nodes1)
     n1.start()
+    client = PlexusUserApi(endpoint="tcp://192.168.100.4:5565", name="client", list_of_nodes=list_of_nodes1)
+    client.start()
     # n2.start()
-    # time.sleep(5.2)
+    time.sleep(5.2)
+    print("client.get_all_nodes_info() : {}".format(client.get_all_nodes_info()))
+    time.sleep(5.2)
+    print("client.get_all_nodes_info() : {}".format(client.get_all_nodes_info()))
     # n3.start()
     # n2.join()
     n1.join()

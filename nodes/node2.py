@@ -74,6 +74,7 @@ class BaseNode(ABC, Process):
 
     # ===============================================================================
 
+
     def __init__(self, endpoint: str, name: str, list_of_nodes: list, is_daemon: bool = True):
         """
         :param list_of_nodes: must be list with dicts like
@@ -93,9 +94,10 @@ class BaseNode(ABC, Process):
         self._endpoint = endpoint
         # container to keep all local devices in one place
         self._devices = []
-        # self._broker = broker_name
         self.loop = None
         self.list_of_nodes = list_of_nodes
+        self.network_state = dict()
+
 
         # Prepare our context and sockets
         self.context = zmq.Context()
@@ -106,7 +108,6 @@ class BaseNode(ABC, Process):
         self.status = "not_started"
         self.ping_period = 1000
         self._sockets = list()
-
         self._description = "abstract base node"
 
     # ========= tech methods, those must not be redefined by user ==========
@@ -116,34 +117,37 @@ class BaseNode(ABC, Process):
         # base node preparations like creating sockets
         # preparations that user dont want to see
         self.logger("start run")
-        # lets create your main socket wit bind option
+        # lets create your main socket with bind option
         self._socket = self.context.socket(zmq.ROUTER)
         self._socket.identity = "{}".format(self.name).encode('ascii')
         self.logger("{}".format(self.name).encode('ascii'))
         self._socket.bind(self._endpoint)
         self.main_stream = ZMQStream(self._socket)
         self.main_stream.on_recv_stream(self.reqv_callback)
+        self.network_state = dict()
 
         # then lets create lots of sockets for all other nodes from given list
         for n in self.list_of_nodes:
             if n["name"] != self.name:
                 # create router socket and append it to self._sockets
-                #
-
                 new_socket = self.context.socket(zmq.ROUTER)
-                # new_socket.identity = "{}".format(n["name"]).encode('ascii')
                 new_socket.identity = "{}".format(self.name).encode('ascii')
                 self.logger("{}".format(n["name"]).encode('ascii'))
                 new_socket.connect(n["address"])
                 new_stream = ZMQStream(new_socket)
                 new_stream.on_recv_stream(self.reqv_callback)
+                # lets create big dict for every node in list, with
+                self.network_state[n["name"]] = {"address": n["address"],
+                                                 "status": "unknown",
+                                                 "last_msg_sent": None,
+                                                 "last_msg_received": None}
+                self.logger("self network state: {}".format(self.network_state))
 
                 # for now we will keep socket instance,  stream instance, last_time, and status
                 self._sockets.append([n["name"], new_socket, new_stream, n["address"],
                                       datetime.datetime.now(), "not_started"])
                 self.logger([n["name"], new_socket, new_stream, n["address"],
                               datetime.datetime.now(), "not_started"])
-
 
         self.ping_timer = PeriodicCallback(self.on_ping_timer, self.ping_period)
 
@@ -170,9 +174,15 @@ class BaseNode(ABC, Process):
         msg_encoded = pickle.dumps(msg_dict)
         # msg = [self._broker.encode('ascii'), b'', addr.encode('ascii'), b'', msg_encoded]
         # msg = [addr.encode('ascii'), b'', msg_encoded]
-        msg = [addr, b'', msg_encoded]
+        msg = [addr.encode('ascii'), b'', msg_encoded]
+        msg_raw = [addr, b'', msg_dict]  # for store needs
         # then put its id to queue
-        self.store_awaiting_msg(msg)
+        self.store_awaiting_msg(msg_raw)
+
+        # also lets save last sent msg time in network config
+        self.network_state[addr]["last_msg_sent"] = time.time()
+        self.logger("self network state: {}".format(self.network_state))
+
         self.logger("msg to {} is {}".format(addr, msg))
         # send msg
         stream.send_multipart(msg)
@@ -196,6 +206,21 @@ class BaseNode(ABC, Process):
         msg_data = msg_dict["data"]
         msg_time = msg_dict["time"]
 
+        # lets check if that node in our noeds list:
+        if from_addr.decode('ascii') in self.network_state.keys():
+            self.network_state[from_addr.decode('ascii')]["last_msg_received"] = time.time()
+            self.logger("self network state: {}".format(self.network_state))
+        else:
+            self.logger("found new node by irs reqv: {}".format(from_addr.decode('ascii')))
+            self.logger("we will add it to our network state container")
+            # TODO mb it is good to add unknown node to our ping list?
+            self.network_state[from_addr.decode('ascii')] = {"address": "unknown",  # todo how to find addr?
+                                                               "status": "unknown",
+                                                               "last_msg_sent": None,
+                                                               "last_msg_received": time.time()}
+
+            self.logger("self network state: {}".format(self.network_state))
+
         # 1) lets check if it is response for one of our requests to another node
         self.logger(msg_dict["command"])
 
@@ -215,7 +240,7 @@ class BaseNode(ABC, Process):
         # 2) check if it is command to node
         elif device_name == self.name or device_name.decode('ascii') == self.name:
             # it means that msg was sent directly to node
-            self.handle_system_msgs(stream, from_addr, msg_dict)
+            self.handle_system_msgs(stream, from_addr.decode('ascii'), msg_dict)
 
         # 3) check if it is command to one of our devices
         # let's check which device the message was sent to
@@ -260,11 +285,6 @@ class BaseNode(ABC, Process):
             # it means that it it reqv to us and we must answer
             # in answer we need to send all info about node and its devices
             self.logger("command PING received")
-            info = {
-                "name": self.name,
-                "status": self.status,
-                "devices": self._devices
-            }
             to_addr = from_addr
             self.send(stream=stream,
                 addr=to_addr,
@@ -275,47 +295,56 @@ class BaseNode(ABC, Process):
 
             # we have to send resp with standard info about this node and its devices
 
-
     def on_ping_timer(self):
         # method to ping other sockets
         self.logger("try to send ping")
         for s in self._sockets:
-            # print(s)
             # self._sockets.append([n["name"], new_socket, new_stream, n["address"],
             #                       datetime.datetime.now(), "not_started"])
-            self.send(stream=s[2], addr=s[0].encode('ascii'), device=s[0].encode('ascii'),
+            self.send(stream=s[2], addr=s[0], device=s[0],
                       command="PING", msg_id=uuid.uuid1(), data=b'')
+            # self.network_state[s[0]]["last_ping_sent"] = time.time()
 
-    def store_awaiting_msg(self, msg: Any):
+    def store_awaiting_msg(self, msg_raw: Any):
+        """ user can override this method if needs"""
         # TODO
-        pass
 
     def extract_awaiting_msg(self, msg_id: Any):
+        """ user can override this method if needs"""
         # TODO
         msg = None
         return msg
 
     def system_resp_handler(self, stream: ZMQStream, from_addr: str, msg_dict: dict, reqv_msg: Any):
+        """ user can override this method if needs"""
         # TODO
         pass
 
-    # def find_broker(self):
-    #     # returns broker name as string to send messages later
-    #     # if no response from broker - raise exception
-    #     # how to find broker?
-    #     # TODO for now we cannot find it)
-    #
-    #     return "broker"
+    # =================================================================================================
+    # messaging wrappers to use in api class
+
+    def get_all_nodes_info(self):
+        """
+        returns list of all nodes from config with their addr and state
+        :return:
+        """
+        self.logger("self network state: {}".format(self.network_state))
+        return self.network_state
+
+    def get_full_node_info(self, nodename):
+        """
+        returns info about node with list of custom node commands and list of all devices and their state
+        :return:
+        """
+        pass
+
+    def get_full_device_info(self):
+        """
+        returns info about selected device with its commands and correspond params
+        :return:
+        """
+        pass
 
 
 if __name__ == "__main__":
     pass
-
-    # def on_timer(self):
-    #     print("USER_{}: on timer called, so i will send msg".format(self.name))
-    #     broker_addr = (u"Broker-reqv").encode('ascii')
-    #
-    #     to_addr = u"USER_{}".format(random.randint(1, 4)).encode('ascii')
-    #     msg_body = "REQV from USER_{} to {}: you are gay".format(self.name, to_addr).encode('ascii')
-    #     msg = [broker_addr, b'', to_addr, b'', msg_body]
-    #     self.main_stream.send_multipart(msg)
