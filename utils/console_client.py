@@ -17,6 +17,7 @@ except ModuleNotFoundError:
     sys.path.insert(0, "{}/utils".format(abspath))
     sys.path.insert(0, "{}/nodes".format(abspath))
     from node2 import BaseNode, PeriodicCallback, uuid
+    from message import Message
     from logger import PrintLogger
 
 

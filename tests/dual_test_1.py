@@ -11,13 +11,16 @@ try:
     from utils.console_client import PlexusUserApi
     # from nodes.broker import BrokerNode
     from devices.numlock_device import NumLockDevice
-except ModuleNotFoundError:
+except Exception:
     # here we trying to manually add our lib path to python path
     abspath = os.path.abspath("..")
+    print(abspath)
     sys.path.insert(0, "{}/nodes".format(abspath))
     sys.path.insert(0, "{}/devices".format(abspath))
     sys.path.insert(0, "{}/utils".format(abspath))
-    from node2 import BaseNode, PeriodicCallback, Message
+    print(sys.path)
+    from node2 import BaseNode, PeriodicCallback
+    from message import Message
     from console_client import PlexusUserApi
     from numlock_device import NumLockDevice
 
@@ -53,15 +56,16 @@ class TestLedNode(BaseNode):
         self.led_timer.start()
 
     def on_led_timer(self):
+        pass
 
-        res = self._led_device.call("get_state")
-        print("led device current state: {}".format(res))
-        if str(res) == "on":
-            self._led_device.call("set_state", **{"new_state": 0})
-            print("new led device current state: {}".format(self._led_device.call("get_state")))
-        if str(res) == "off":
-            self._led_device.call("set_state", **{"new_state": 1})
-            print("new led device current state: {}".format(self._led_device.call("get_state")))
+        # res = self._led_device.call("get_state")
+        # print("led device current state: {}".format(res))
+        # if str(res) == "on":
+        #     self._led_device.call("set_state", **{"new_state": 0})
+        #     print("new led device current state: {}".format(self._led_device.call("get_state")))
+        # if str(res) == "off":
+        #     self._led_device.call("set_state", **{"new_state": 1})
+        #     print("new led device current state: {}".format(self._led_device.call("get_state")))
 
 
     def custom_request_parser(self, stream, reqv_msg: Message):
@@ -84,25 +88,28 @@ if __name__ == '__main__':
     # n2 = TestLedNode(name="node2", endpoint="tcp://192.168.100.4:5567", list_of_nodes=list_of_nodes1)
     # n3 = TestLedNode(name="node3", endpoint="tcp://192.168.100.4:5568", list_of_nodes=list_of_nodes1)
     n1.start()
-    client = PlexusUserApi(endpoint="tcp://192.168.100.4:5565", name="client", list_of_nodes=list_of_nodes1)
-
-    # n2.start()
-    time.sleep(5.2)
-    m = Message(
-        addr="node1",
-        device="node1",
-        command="PING",
-        msg_id=uuid.uuid1(),
-        time_=time.time(),
-        data=b''
-    )
-    res = client.send_msg(m)
-    decoded_resp = Message.parse_zmq_msg(res)
-    print("we got resp from node1:\n{}".format(decoded_resp))
-    # print("client.get_all_nodes_info() : {}".format(client.get_all_nodes_info()))
-    # time.sleep(5.2)
-    # print("client.get_all_nodes_info() : {}".format(client.get_all_nodes_info()))
-    # n3.start()
-    # n2.join()
+    # client = PlexusUserApi(endpoint="tcp://192.168.100.4:5565", name="client", list_of_nodes=list_of_nodes1)
+    #
+    # while True:
+    #     user_arg = input("press 1 to turn led on\n press 0 to turn led off: 0")
+    #     # n2.start()
+    #     time.sleep(5.2)
+    #     m = Message(
+    #         addr="node1",
+    #         device="numlock",
+    #         command="set_state",
+    #         msg_id=uuid.uuid1(),
+    #         time_=time.time(),
+    #         data={"new_state": int(user_arg)}
+    #     )
+    #
+    #     res = client.send_msg(m)
+    #     decoded_resp = Message.parse_zmq_msg(res)
+    #     print("we got resp from node1:\n{}".format(decoded_resp))
+        # print("client.get_all_nodes_info() : {}".format(client.get_all_nodes_info()))
+        # time.sleep(5.2)
+        # print("client.get_all_nodes_info() : {}".format(client.get_all_nodes_info()))
+        # n3.start()
+        # n2.join()
     n1.join()
 

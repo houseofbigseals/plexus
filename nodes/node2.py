@@ -22,7 +22,7 @@ except ModuleNotFoundError:
     abspath = os.path.abspath("..")
     sys.path.insert(0, "{}/utils".format(abspath))
     sys.path.insert(0, "{}/nodes".format(abspath))
-
+    from message import Message
     from logger import PrintLogger
     from message import Message
 
@@ -173,7 +173,7 @@ class BaseNode(ABC, Process):
         self.network_state[msg_to_send.addr]["last_msg_sent"] = time.time()
         self.logger("self network state: {}".format(self.network_state))
 
-        self.logger("msg to {} is {}".format(msg_to_send.addr, msg))
+        # self.logger("msg to {} is {}".format(msg_to_send.addr, msg))
         # send msg
         stream.send_multipart(msg)
 
@@ -183,7 +183,7 @@ class BaseNode(ABC, Process):
         self.logger("we got msg: {}".format(reqv_msg))
         # parse
         addr_decoded, decoded_dict = Message.parse_zmq_msg(reqv_msg)
-        print(addr_decoded, decoded_dict)
+        # self.logger([addr_decoded, decoded_dict])
         decoded_msg = Message.create_msg_from_addr_and_dict(addr_decoded=addr_decoded, decoded_dict=decoded_dict)
         self.logger(decoded_dict)
 
@@ -221,14 +221,14 @@ class BaseNode(ABC, Process):
 
             # here app must find original msg by its id and delete it from unanswered queue
             # also if it was resp for some system call, it must be handled here, before user parsing
-            print(stream, decoded_msg)
+            # print(stream, decoded_msg)
             self.system_resp_handler(stream=stream, resp_msg=decoded_msg)
             # and there - user parsing
             self.custom_response_parser(stream=stream, resp_msg=decoded_msg)
 
         # there is a list of system commands that we use under the hood
         # 2) check if it is command to node
-        elif decoded_dict["device"] == self.name or decoded_dict["device"].decode('ascii') == self.name:
+        elif decoded_dict["device"] == self.name:
             # it means that msg was sent directly to node
             self.handle_system_msgs(stream, decoded_msg)
 
@@ -236,7 +236,9 @@ class BaseNode(ABC, Process):
         # let's check which device the message was sent to
         else:
             for device_ in self._devices:
+                self.logger("msg device is {}".format(decoded_dict["device"]))
                 if device_.name == decoded_dict["device"]:
+                    self.logger("found requested device in our devices {}".format(device_.name))
                     # then call selected method on this device with that params
                     try:
                         result = device_.call(decoded_dict["command"], **decoded_dict["data"])
@@ -249,6 +251,7 @@ class BaseNode(ABC, Process):
                             time_=time.time(),
                             data=result
                         )
+                        self.logger("try to send resp {}".format(res_msg))
                         self.send(stream, res_msg)
                     except Exception as e:
                         error_str = "error while calling device: {}".format(e)
@@ -261,6 +264,7 @@ class BaseNode(ABC, Process):
                             time_=time.time(),
                             data=error_str
                         )
+                        self.logger("try to send resp wit error {}".format(res_msg))
                         self.send(stream, res_msg)
 
             # this is shit and we dont want to handle it
