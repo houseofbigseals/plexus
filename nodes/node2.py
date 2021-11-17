@@ -4,7 +4,6 @@ import time
 import uuid
 import os
 import sys
-
 import zmq
 import pickle
 
@@ -14,20 +13,18 @@ from multiprocessing import Process
 from abc import ABC, abstractmethod, abstractproperty
 from typing import Any
 
-# from broker import BrokerNode
 
 try:
     from utils.logger import PrintLogger
+    from nodes.message import Message
 except ModuleNotFoundError:
     # here we trying to manually add our lib path to python path
     abspath = os.path.abspath("..")
-    # print(abspath)
-    # sys.path.insert(0, "{}/low_level_drivers".format(abspath))
     sys.path.insert(0, "{}/utils".format(abspath))
-
-    # print(sys.path)
+    sys.path.insert(0, "{}/nodes".format(abspath))
 
     from logger import PrintLogger
+    from message import Message
 
 
 # commands like "kill", "stop", "status"
@@ -63,12 +60,12 @@ class BaseNode(ABC, Process):
         pass
 
     @abstractmethod
-    def custom_request_parser(self, stream, from_addr: str, msg_dict: dict):
+    def custom_request_parser(self, stream: ZMQStream, reqv_msg: Message):
         # here user can add custom parsing of received message
         pass
 
     @abstractmethod
-    def custom_response_parser(self, stream,  from_addr: str, msg_dict: dict, reqv_msg: Any):
+    def custom_response_parser(self, stream: ZMQStream,  resp_msg: Message):
         # here user can add custom parsing of received answer for his message
         pass
 
@@ -107,7 +104,7 @@ class BaseNode(ABC, Process):
         self.logger("end init")
         self.status = "not_started"
         self.ping_period = 1000
-        self._sockets = list()
+        self._sockets = dict()
         self._description = "abstract base node"
 
     # ========= tech methods, those must not be redefined by user ==========
@@ -144,10 +141,13 @@ class BaseNode(ABC, Process):
                 self.logger("self network state: {}".format(self.network_state))
 
                 # for now we will keep socket instance,  stream instance, last_time, and status
-                self._sockets.append([n["name"], new_socket, new_stream, n["address"],
-                                      datetime.datetime.now(), "not_started"])
-                self.logger([n["name"], new_socket, new_stream, n["address"],
-                              datetime.datetime.now(), "not_started"])
+                self._sockets[n["name"]] = {
+                    "stream": new_stream,
+                     "socket": new_socket,
+                     "address": n["address"],
+                     "status": "not_started"
+                     }
+                self.logger(self._sockets[n["name"]])
 
         self.ping_timer = PeriodicCallback(self.on_ping_timer, self.ping_period)
 
@@ -162,59 +162,47 @@ class BaseNode(ABC, Process):
         # go to endless loop with reading messages and checking PeriodicalCallbacks, created by user
         self.loop.start()
 
-    def send(self, stream: ZMQStream, addr: str, device: str, command: str, msg_id: uuid, data: Any):
+    def send(self, stream: ZMQStream, msg_to_send: Message):
         """handler for sending data to another node through local broker """
         # prepare msg
-        msg_dict = dict()
-        msg_dict["device"] = device
-        msg_dict["command"] = command
-        msg_dict["id"] = msg_id
-        msg_dict["time"] = time.time()
-        msg_dict["data"] = data
-        msg_encoded = pickle.dumps(msg_dict)
-        # msg = [self._broker.encode('ascii'), b'', addr.encode('ascii'), b'', msg_encoded]
-        # msg = [addr.encode('ascii'), b'', msg_encoded]
-        msg = [addr.encode('ascii'), b'', msg_encoded]
-        msg_raw = [addr, b'', msg_dict]  # for store needs
+        msg = msg_to_send.create_zmq_msg()
         # then put its id to queue
-        self.store_awaiting_msg(msg_raw)
+        # self.store_awaiting_msg(msg_to_send)
 
         # also lets save last sent msg time in network config
-        self.network_state[addr]["last_msg_sent"] = time.time()
+        self.network_state[msg_to_send.addr]["last_msg_sent"] = time.time()
         self.logger("self network state: {}".format(self.network_state))
 
-        self.logger("msg to {} is {}".format(addr, msg))
+        self.logger("msg to {} is {}".format(msg_to_send.addr, msg))
         # send msg
         stream.send_multipart(msg)
 
-    def reqv_callback(self, stream, msg):
+    def reqv_callback(self, stream: ZMQStream, reqv_msg: list):
         """base callback for all messages in all streams"""
         self.logger("reqv callback")
-        self.logger("we got msg: {}".format(msg))
+        self.logger("we got msg: {}".format(reqv_msg))
         # parse
-        # broker = msg[0]
-        # empty = msg[1]
-        from_addr = msg[0]
-        empty = msg[1]
-        msg_body = msg[2]
-        msg_dict = pickle.loads(msg_body)
-        self.logger(msg_dict)
+        addr_decoded, decoded_dict = Message.parse_zmq_msg(reqv_msg)
+        print(addr_decoded, decoded_dict)
+        decoded_msg = Message.create_msg_from_addr_and_dict(addr_decoded=addr_decoded, decoded_dict=decoded_dict)
+        self.logger(decoded_dict)
 
-        msg_id = msg_dict["id"]
-        command = msg_dict["command"]
-        device_name = msg_dict["device"]  # that is a str with device name
-        msg_data = msg_dict["data"]
-        msg_time = msg_dict["time"]
+        # msg_id = msg_dict["id"]
+        # command = msg_dict["command"]
+        # device_name = msg_dict["device"]  # that is a str with device name
+        # msg_data = msg_dict["data"]
+        # msg_time = msg_dict["time"]
 
         # lets check if that node in our noeds list:
-        if from_addr.decode('ascii') in self.network_state.keys():
-            self.network_state[from_addr.decode('ascii')]["last_msg_received"] = time.time()
+        if addr_decoded in self.network_state.keys():
+            self.network_state[addr_decoded]["last_msg_received"] = time.time()
             self.logger("self network state: {}".format(self.network_state))
         else:
-            self.logger("found new node by irs reqv: {}".format(from_addr.decode('ascii')))
+            self.logger("found new node by irs reqv: {}".format(addr_decoded))
             self.logger("we will add it to our network state container")
             # TODO mb it is good to add unknown node to our ping list?
-            self.network_state[from_addr.decode('ascii')] = {"address": "unknown",  # todo how to find addr?
+            self.network_state[addr_decoded] = {"address": "unknown",
+                                                # todo how to find addr? in form "tcp://192.168.100.8:5568"
                                                                "status": "unknown",
                                                                "last_msg_sent": None,
                                                                "last_msg_received": time.time()}
@@ -222,49 +210,67 @@ class BaseNode(ABC, Process):
             self.logger("self network state: {}".format(self.network_state))
 
         # 1) lets check if it is response for one of our requests to another node
-        self.logger(msg_dict["command"])
+        self.logger(decoded_dict["command"])
 
-        if command == "RESP":
+        if decoded_dict["command"] == "RESP":
             # so we dont care about "device" field
             # it means that it it resp to us and we must not answer
-            answered_resp = self.extract_awaiting_msg(msg_id)
-            self.logger("command RESP received in msg with id {}".format(msg_id))
-            self.logger("msg body is {}".format(msg_dict))
+            # answered_resp = self.extract_awaiting_msg(decoded_dict["msg_id"])
+            self.logger("command RESP received in msg with id {}".format(decoded_dict["msg_id"]))
+            self.logger("msg body is {}".format(decoded_dict))
+
             # here app must find original msg by its id and delete it from unanswered queue
             # also if it was resp for some system call, it must be handled here, before user parsing
-            self.system_resp_handler(stream, from_addr, msg_dict, answered_resp)
+            print(stream, decoded_msg)
+            self.system_resp_handler(stream=stream, resp_msg=decoded_msg)
             # and there - user parsing
-            self.custom_response_parser(stream, from_addr, msg_dict, answered_resp)
+            self.custom_response_parser(stream=stream, resp_msg=decoded_msg)
 
         # there is a list of system commands that we use under the hood
         # 2) check if it is command to node
-        elif device_name == self.name or device_name.decode('ascii') == self.name:
+        elif decoded_dict["device"] == self.name or decoded_dict["device"].decode('ascii') == self.name:
             # it means that msg was sent directly to node
-            self.handle_system_msgs(stream, from_addr.decode('ascii'), msg_dict)
+            self.handle_system_msgs(stream, decoded_msg)
 
         # 3) check if it is command to one of our devices
         # let's check which device the message was sent to
         else:
             for device_ in self._devices:
-                if device_.name == device_name:
+                if device_.name == decoded_dict["device"]:
                     # then call selected method on this device with that params
                     try:
-                        result = device_.call(command, **msg_data)
-                        encoded_result = pickle.dumps(result)
-                        self.send(stream, from_addr, device_name, "RESP", msg_id, encoded_result)
+                        result = device_.call(decoded_dict["command"], **decoded_dict["data"])
+                        # encoded_result = pickle.dumps(result)
+                        res_msg = Message(
+                            addr=addr_decoded,
+                            device=decoded_dict["device"],
+                            command="RESP",
+                            msg_id=decoded_dict["msg_id"],
+                            time_=time.time(),
+                            data=result
+                        )
+                        self.send(stream, res_msg)
                     except Exception as e:
                         error_str = "error while calling device: {}".format(e)
                         self.logger(error_str)
-                        self.send(stream, from_addr, device_name, "RESP", msg_id, pickle.dumps(error_str))
+                        res_msg = Message(
+                            addr=addr_decoded,
+                            device=decoded_dict["device"],
+                            command="RESP",
+                            msg_id=decoded_dict["msg_id"],
+                            time_=time.time(),
+                            data=error_str
+                        )
+                        self.send(stream, res_msg)
 
             # this is shit and we dont want to handle it
-            self.logger("command {} is not system, trying to use user handler".format(command))
+            self.logger("command {} is not system, trying to use user handler".format(decoded_dict["command"]))
             # 5) may be user want to handle it somehow
-            self.custom_request_parser(stream, from_addr, msg_dict)
+            self.custom_request_parser(stream, decoded_msg)
 
-    def handle_system_msgs(self, stream, from_addr, msg_dict):
+    def handle_system_msgs(self, stream, reqv_msg: Message):
         """handler to base commands, those can be sent to every node by another node"""
-        if msg_dict["command"] == "INFO":
+        if reqv_msg.command == "INFO":
             # it means that it it reqv to us and we must answer
             # in answer we need to send all info about node and its devices
             self.logger("command INFO received")
@@ -273,77 +279,74 @@ class BaseNode(ABC, Process):
                 "status": self.status,
                 "devices": self._devices
             }
-            to_addr = from_addr
-            self.send(stream=stream,
-                addr=to_addr,
-                device=self.name,
+            # to_addr = from_addr
+            # self.send(stream=stream,
+            #     addr=to_addr,
+            #     device=self.name,
+            #     command="RESP",
+            #     msg_id=msg_dict["id"],
+            #     data=info)
+            res_msg = Message(
+                addr=reqv_msg.addr,
+                device=reqv_msg.device,
                 command="RESP",
-                msg_id=msg_dict["id"],
-                data=info)
+                msg_id=reqv_msg.msg_id,
+                time_=time.time(),
+                data=info
+            )
+            self.send(stream, res_msg)
 
-        if msg_dict["command"] == "PING":
+        if reqv_msg.command == "PING":
             # it means that it it reqv to us and we must answer
             # in answer we need to send all info about node and its devices
             self.logger("command PING received")
-            to_addr = from_addr
-            self.send(stream=stream,
-                addr=to_addr,
-                device=self.name,
+            res_msg = Message(
+                addr=reqv_msg.addr,
+                device=reqv_msg.device,
                 command="RESP",
-                msg_id=msg_dict["id"],
-                data="ACK".encode())
-
+                msg_id=reqv_msg.msg_id,
+                time_=time.time(),
+                data="ACK"
+            )
+            self.send(stream, res_msg)
             # we have to send resp with standard info about this node and its devices
 
     def on_ping_timer(self):
         # method to ping other sockets
         self.logger("try to send ping")
-        for s in self._sockets:
-            # self._sockets.append([n["name"], new_socket, new_stream, n["address"],
-            #                       datetime.datetime.now(), "not_started"])
-            self.send(stream=s[2], addr=s[0], device=s[0],
-                      command="PING", msg_id=uuid.uuid1(), data=b'')
-            # self.network_state[s[0]]["last_ping_sent"] = time.time()
+        for s in self._sockets.keys():
+            # self._sockets[n["name"]] = {
+            #     "stream": new_stream,
+            #     "socket": new_socket,
+            #     "address": n["address"],
+            #     "status": "not_started"
+            # }
+            ping_msg = Message(
+                addr=s,
+                device=s,  # here addr is name and device is name too
+                command="PING",
+                msg_id=uuid.uuid1(),
+                time_=time.time(),
+                data=b''
+            )
+            # print(self._sockets[s]["stream"])
+            self.send(stream=self._sockets[s]["stream"], msg_to_send=ping_msg)
 
-    def store_awaiting_msg(self, msg_raw: Any):
-        """ user can override this method if needs"""
-        # TODO
+    # def store_awaiting_msg(self, resp_msg: Message):
+    #     """ user can override this method if needs"""
+    #     # TODO
 
-    def extract_awaiting_msg(self, msg_id: Any):
-        """ user can override this method if needs"""
-        # TODO
-        msg = None
-        return msg
+    # def extract_awaiting_msg(self, resp_msg: Message):
+    #     """ user can override this method if needs"""
+    #     # TODO
+    #     msg = Message.create_msg_from_addr_and_dict("pass", dict())
+    #     return msg
 
-    def system_resp_handler(self, stream: ZMQStream, from_addr: str, msg_dict: dict, reqv_msg: Any):
+    def system_resp_handler(self, stream: ZMQStream, resp_msg: Message):
         """ user can override this method if needs"""
         # TODO
         pass
 
-    # =================================================================================================
-    # messaging wrappers to use in api class
-
-    def get_all_nodes_info(self):
-        """
-        returns list of all nodes from config with their addr and state
-        :return:
-        """
-        self.logger("self network state: {}".format(self.network_state))
-        return self.network_state
-
-    def get_full_node_info(self, nodename):
-        """
-        returns info about node with list of custom node commands and list of all devices and their state
-        :return:
-        """
-        pass
-
-    def get_full_device_info(self):
-        """
-        returns info about selected device with its commands and correspond params
-        :return:
-        """
-        pass
 
 
 if __name__ == "__main__":
