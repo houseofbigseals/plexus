@@ -74,7 +74,7 @@ def get_bmp180_data():
     B4 = AC4 * (X3 + 32768) / 32768.0
     B7 = ((pres - B3) * (25000.0))
     pressure = 0.0
-    if B7 < 2147483648L:
+    if B7 < 2147483648:
         pressure = (B7 * 2) / B4
     else:
         pressure = (B7 / B4) * 2
