@@ -62,8 +62,8 @@ if __name__ == "__main__":
     print(c.call("info"))
     print(c.call("get_state"))
     while True:
-        c.call("get_temperature")
+        print(c.call("get_temperature"))
         time.sleep(1)
-        c.call("get_temp_and_press")
+        print(c.call("get_temp_and_press"))
         time.sleep(1)
     # c.call("start")
