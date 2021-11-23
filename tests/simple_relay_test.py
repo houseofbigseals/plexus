@@ -85,10 +85,15 @@ class PassiveLabNode(BaseNode):
         # like that:
         # self.check_timer = PeriodicCallback(self.on_timer, self.period)
         # self.check_timer.start()
+        self.logger("custom init")
         self.ch_8_timer = PeriodicCallback(self.on_ch_8_timer, 2000)
         self.ch_8_timer.start()
+        self.logger("shut off all relays")
+        for ch in self._devices:
+            ch.call("on")  # because they are inverted
 
     def on_ch_8_timer(self):
+        self.logger("blink with channel8 relay")
         if self.ch8_state:
             self.ch8_state = False
             self.ch8.call("off")
