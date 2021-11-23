@@ -99,7 +99,7 @@ class PassiveLabNode(BaseNode):
 
 if __name__ == "__main__":
     list_of_nodes1 = [
-        {"name": "node1", "address": "tcp://10.9.0.21:5566"},
+        {"name": "node1", "address": "tcp://10.9.0.23:5566"},
     ]
     n1 = PassiveLabNode(name=list_of_nodes1[0]['name'], endpoint=list_of_nodes1[0]['address'],
                      list_of_nodes=list_of_nodes1)
