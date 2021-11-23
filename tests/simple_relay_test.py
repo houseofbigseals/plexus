@@ -94,12 +94,13 @@ class PassiveLabNode(BaseNode):
 
     def on_ch_8_timer(self):
         self.logger("blink with channel8 relay")
-        if self.ch8_state:
-            self.ch8_state = False
-            self.ch8.call("off")
-        else:
-            self.ch8_state = True
-            self.ch8.call("on")
+        # if self.ch8_state:
+        #     self.ch8_state = False
+        #     self.ch8.call("off")
+        # else:
+        #     self.ch8_state = True
+        #     self.ch8.call("on")
+        pass
 
 
 if __name__ == "__main__":
