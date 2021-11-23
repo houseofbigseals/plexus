@@ -65,7 +65,7 @@ class PassiveLabNode(BaseNode):
         self.ch7 = RpiGpioRelayDevice("ch7", 16)
         self.ch8 = RpiGpioRelayDevice("ch8", 20)
 
-        self._devices.append([
+        self._devices.extend([
             self.n2_valve, self.vent_pump_3, self.vent_pump_4, self.coolers_12v,
             self.air_valve_2, self.air_valve_3, self.ch7, self.ch8
                               ])
