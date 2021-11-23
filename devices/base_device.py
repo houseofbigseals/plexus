@@ -11,6 +11,7 @@ from abc import ABC, abstractmethod, abstractproperty
 # from inspect import Parameter, Signature
 # import pickle, sys
 
+
 class BaseDevice(ABC):
     """
 
