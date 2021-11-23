@@ -19,6 +19,7 @@ except Exception:
     from logger import PrintLogger
     from message import Message
     from base_device import BaseDevice
+    from rpi_gpio_relay_driver import RpiGpioChannelHandler
 
 
 class RpiGpioRelayDevice(BaseDevice):
