@@ -96,6 +96,7 @@ class PassiveLabNode(BaseNode):
             self.ch8_state = True
             self.ch8.call("on")
 
+
 if __name__ == "__main__":
     list_of_nodes1 = [
         {"name": "node1", "address": "tcp://10.9.0.21:5566"},
