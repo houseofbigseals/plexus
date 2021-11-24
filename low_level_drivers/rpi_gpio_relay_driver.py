@@ -23,10 +23,6 @@ it works somehow and i dont know how exactly
 """
 
 
-# from copy import deepcopy
-# import time
-# from collections import OrderedDict, namedtuple
-
 try:
     # import gpiozero
     from gpiozero import LED

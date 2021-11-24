@@ -90,11 +90,15 @@ class BaseNode(ABC, Process):
         self.logger("start init")
         self._endpoint = endpoint
         # container to keep all local devices in one place
-        self._devices = []
+        self._devices = list()
         self.loop = None
         self.list_of_nodes = list_of_nodes
         self.network_state = dict()
 
+        self.info = None  # by default no devices in node, so None is info
+        # we can update info later
+        # for example - in run()
+        self.custom_commands = list()  # by default there is no custom commands
 
         # Prepare our context and sockets
         self.context = zmq.Context()
@@ -153,6 +157,12 @@ class BaseNode(ABC, Process):
 
         # preparations by user like creating PeriodicalCallbacks
         self.custom_preparation()
+
+        self.info = {
+            "name": self.name,
+            "status": self.status,
+            "devices": self._devices
+        }
 
         # the loop
         self.loop = IOLoop.current()
@@ -278,11 +288,7 @@ class BaseNode(ABC, Process):
             # it means that it it reqv to us and we must answer
             # in answer we need to send all info about node and its devices
             self.logger("command INFO received")
-            info = {
-                "name": self.name,
-                "status": self.status,
-                "devices": self._devices
-            }
+
             # to_addr = from_addr
             # self.send(stream=stream,
             #     addr=to_addr,
@@ -290,13 +296,20 @@ class BaseNode(ABC, Process):
             #     command="RESP",
             #     msg_id=msg_dict["id"],
             #     data=info)
+
+            self.info = {
+                "name": self.name,
+                "status": self.status,
+                "devices": self._devices
+            }
+
             res_msg = Message(
                 addr=reqv_msg.addr,
                 device=reqv_msg.device,
                 command="RESP",
                 msg_id=reqv_msg.msg_id,
                 time_=time.time(),
-                data=info
+                data=self.info
             )
             self.send(stream, res_msg)
 
