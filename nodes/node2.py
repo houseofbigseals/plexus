@@ -158,10 +158,11 @@ class BaseNode(ABC, Process):
         # preparations by user like creating PeriodicalCallbacks
         self.custom_preparation()
 
+        device_names = [d.name for d in self._devices]
         self.info = {
             "name": self.name,
             "status": self.status,
-            "devices": self._devices
+            "devices": device_names
         }
 
         # the loop
@@ -296,11 +297,11 @@ class BaseNode(ABC, Process):
             #     command="RESP",
             #     msg_id=msg_dict["id"],
             #     data=info)
-
+            device_names = [d.name for d in self._devices]
             self.info = {
                 "name": self.name,
                 "status": self.status,
-                "devices": self._devices
+                "devices": device_names
             }
 
             res_msg = Message(
