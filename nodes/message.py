@@ -12,7 +12,7 @@ msg_dict: bytes - serialized by pickle dict with all information
 ]
 
 msg_dict:
-{addr: str, device: str, command: str, msg_id: uuid, data: Any}
+{addr: str, device: str, command: str, msg_id: str - created by uuid4().hex, data: Any}
 
 you can send any type of data in data field, but in most cases 
 it is dict with correspond arguments for command
@@ -30,7 +30,7 @@ class Message:
                  addr: str,
                  device: str,
                  command: str,
-                 msg_id: uuid = None,
+                 msg_id: str = None,
                  data: Any = None,
                  time_: float = None
                  ):
@@ -40,7 +40,7 @@ class Message:
         self.addr = addr
         self.device = device
         self.command = command
-        self.msg_id = msg_id if msg_id else uuid.uuid4()
+        self.msg_id = msg_id if msg_id else uuid.uuid4().hex
         self.data = data if data else b''
         self.time = time_ if time_ else time.time()
 

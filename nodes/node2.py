@@ -342,7 +342,7 @@ class BaseNode(ABC, Process):
                 addr=s,
                 device=s,  # here addr is name and device is name too
                 command="PING",
-                msg_id=uuid.uuid4(),
+                msg_id=uuid.uuid4().hex,
                 time_=time.time(),
                 data=b''
             )

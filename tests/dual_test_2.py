@@ -56,7 +56,7 @@ if __name__ == '__main__':
             addr="node1",
             device="node1",
             command="PING",
-            msg_id=uuid.uuid4(),
+            msg_id=uuid.uuid4().hex,
             time_=time.time(),
             # data={"new_state": int(user_arg)}
             data=b''
@@ -67,7 +67,7 @@ if __name__ == '__main__':
         #     addr="node1",
         #     device="numlock",
         #     command="set_state",
-        #     msg_id=uuid.uuid1(),
+        #     msg_id=uuid.uuid4().hex,
         #     time_=time.time(),
         #     data={"new_state": int(user_arg)}
         # )
@@ -78,7 +78,7 @@ if __name__ == '__main__':
         #     addr="node1",
         #     device="node1",
         #     command="PING",
-        #     msg_id=uuid.uuid1(),
+        #     msg_id=uuid.uuid4().hex,
         #     time_=time.time(),
         #     data=b''
         # )
