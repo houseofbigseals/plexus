@@ -72,7 +72,7 @@ class Message:
             command=decoded_dict["command"],
             msg_id=decoded_dict["msg_id"],
             data=decoded_dict["data"],
-            time_= decoded_dict["time"]
+            time_=decoded_dict["time"]
         )
         return new_msg
 

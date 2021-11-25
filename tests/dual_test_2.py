@@ -47,7 +47,7 @@ if __name__ == '__main__':
     client = PlexusUserApi(endpoint="tcp://10.9.0.21:5565", name="client", list_of_nodes=list_of_nodes1)
 
     while True:
-        user_arg = input("press new led state: ")
+        user_arg = input("press new command: ")
         print("your input: {}".format(user_arg))
         # n2.start()
         # time.sleep(5.2)
@@ -55,7 +55,7 @@ if __name__ == '__main__':
         m = Message(
             addr="node1",
             device="node1",
-            command="PING",
+            command=str(user_arg),
             msg_id=uuid.uuid4().hex,
             time_=time.time(),
             # data={"new_state": int(user_arg)}

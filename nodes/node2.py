@@ -309,7 +309,7 @@ class BaseNode(ABC, Process):
                 command="RESP",
                 msg_id=reqv_msg.msg_id,
                 time_=time.time(),
-                data=self.info
+                data=str(self.info)
             )
             self.send(stream, res_msg)
 
