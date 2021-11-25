@@ -40,7 +40,7 @@ class Message:
         self.addr = addr
         self.device = device
         self.command = command
-        self.msg_id = msg_id if msg_id else uuid.uuid1()
+        self.msg_id = msg_id if msg_id else uuid.uuid4()
         self.data = data if data else b''
         self.time = time_ if time_ else time.time()
 

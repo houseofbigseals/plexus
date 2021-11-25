@@ -56,7 +56,7 @@ if __name__ == '__main__':
             addr="node1",
             device="node1",
             command="PING",
-            msg_id=uuid.uuid1(),
+            msg_id=uuid.uuid4(),
             time_=time.time(),
             # data={"new_state": int(user_arg)}
             data=b''
@@ -84,5 +84,6 @@ if __name__ == '__main__':
         # )
         print("msg to send is {}".format(m))
         res = client.send_msg(m)
+        print("we got raw resp: {}".format(res))
         decoded_resp = Message.parse_zmq_msg(res)
         print("we got resp from node1:\n{}".format(decoded_resp))
