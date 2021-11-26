@@ -88,7 +88,7 @@ class LedUartDriver(BaseDevice):
 
 if __name__ == "__main__":
     d = LedUartDriver(
-        devname='/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0'
+        devname='/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0',
         name="led1"
     )
     print(d.call("start"))
