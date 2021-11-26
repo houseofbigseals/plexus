@@ -16,7 +16,7 @@ except ModuleNotFoundError:
     from led_uart_driver import UartWrapper
 
 
-class LedUartDriver(BaseDevice):
+class LedUartDevice(BaseDevice):
     """
 
     """
@@ -90,7 +90,7 @@ class LedUartDriver(BaseDevice):
 
 
 if __name__ == "__main__":
-    d = LedUartDriver(
+    d = LedUartDevice(
         devname='/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0',
         name="led1"
     )
@@ -100,3 +100,4 @@ if __name__ == "__main__":
     print(d.call("set_white_current", **{"current": 79}))
     print(d.call("get_current"))
     print(d.call("start"))
+

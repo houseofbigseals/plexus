@@ -10,6 +10,7 @@ try:
     # from nodes.broker import BrokerNode
     from devices.rpi_gpio_relay_device import RpiGpioRelayDevice
     from devices.bmp180_device import BMP180Sensor
+    from devices.led_uart_device import LedUartDevice
 except Exception:
     # here we trying to manually add our lib path to python path
     abspath = os.path.abspath("..")
@@ -23,6 +24,7 @@ except Exception:
     from console_client import PlexusUserApi
     from rpi_gpio_relay_device import RpiGpioRelayDevice
     from bmp180_device import BMP180Sensor
+    from led_uart_device import LedUartDevice
 
 
 
@@ -65,9 +67,16 @@ class PassiveLabNode(BaseNode):
         self.ch7 = RpiGpioRelayDevice("ch7", 16)
         self.ch8 = RpiGpioRelayDevice("ch8", 20)
 
+        self.led = LedUartDevice(
+            devname='/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0',
+            name="led"
+        )
+        self.bmp180 = BMP180Sensor("bmp180")
+
         self._devices.extend([
             self.n2_valve, self.vent_pump_3, self.vent_pump_4, self.coolers_12v,
-            self.air_valve_2, self.air_valve_3, self.ch7, self.ch8
+            self.air_valve_2, self.air_valve_3, self.ch7, self.ch8, self.bmp180,
+            self.led
                               ])
         self.ch8_state = False
 
