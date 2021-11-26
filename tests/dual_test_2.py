@@ -47,19 +47,43 @@ if __name__ == '__main__':
     # client = PlexusUserApi(endpoint="tcp://10.9.0.21:5565", name="client", list_of_nodes=list_of_nodes1)
 
     while True:
-        user_arg = input("press new command: ")
-        print("your input: {}".format(user_arg))
+        # 1
+        print("hi\navailable nodes are:")
+        for n in list_of_nodes1:
+            print(n)
+
+        user_node = input("select node: ")
+        print("your input: {}".format(user_node))
+
+        #2
+        print("available devices for that node: TODO")
+        user_device = input("select device: ")
+        print("your input: {}".format(user_device))
+
+        #3
+        print("available commands for that device: TODO")
+        user_command = input("select command: ")
+        print("your input: {}".format(user_command))
+
+        #4
+        print("available args for that device: {'TODO': 1, 'TODO2': 'red'}")
+        user_args = input("write args in string like in previous template: ")
+        # here must be also parsing of this string
+        print("your input: {}".format(user_args))
+
+        # TODO fix all things here
+
         # n2.start()
         # time.sleep(5.2)
 
         m = Message(
-            addr="node1",
-            device="node1",
-            command=str(user_arg),
+            addr=str(user_node),
+            device=str(user_device),
+            command=str(user_command),
             msg_id=uuid.uuid4().hex,
             time_=time.time(),
             # data={"new_state": int(user_arg)}
-            data=b''
+            data={"current": int(user_args)}
         )
 
 
