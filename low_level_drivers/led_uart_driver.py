@@ -126,7 +126,8 @@ class UartWrapper:
             # lets try to decode to int
             byte_ans = bytearray()
             for b_ in ans:
-                b_decoded = ord(b_)  # important when encode ser.read() output back to int
+                # b_decoded = ord(b_)  # important when encode ser.read() output back to int
+                b_decoded = b_
                 logging.debug("Decoded answer byte: {}".format(hex(b_decoded)))
                 byte_ans.extend([b_decoded])
 
@@ -188,7 +189,7 @@ class UartWrapper:
         # print("length ", length)
         # print("ctype ", ctype)
         command.extend([ctype])
-        if (data):
+        if data:
             # data must be list or none
             command.extend(data)
             # print("data ", data)
@@ -196,7 +197,7 @@ class UartWrapper:
         payload = bytearray()
         payload.extend([length])
         payload.extend([ctype])
-        if (data):
+        if data:
             payload.extend(data)
         crc_raw = self.crc16_ccitt(payload)  # returns int
         logging.debug("{} - crc raw ".format(hex(crc_raw)))
