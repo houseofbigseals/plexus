@@ -39,6 +39,7 @@ class LedUartDriver(BaseDevice):
             try:
                 self._led.STOP()
                 self._status = "finished"
+                return "OK"
             except Exception as e:
                 self._status = "error"
                 raise ConnectionError("ERROR {}".format(e))
@@ -62,6 +63,7 @@ class LedUartDriver(BaseDevice):
                 self._led.SET_CURRENT(0, self.red)
                 # self._led.SET_CURRENT(1, white)
                 self._led.FINISH_CONFIGURE_WITH_SAVING()
+                return "OK"
                 # self._led.START()
             except Exception as e:
                 self._status = "error"
@@ -76,6 +78,7 @@ class LedUartDriver(BaseDevice):
                 self._led.SET_CURRENT(1, self.white)
                 # self._led.SET_CURRENT(1, white)
                 self._led.FINISH_CONFIGURE_WITH_SAVING()
+                return "OK"
                 # self._led.START()
             except Exception as e:
                 self._status = "error"
@@ -83,7 +86,7 @@ class LedUartDriver(BaseDevice):
 
         if command == "get_current":
             print("command == 'get_state'")
-            return self.red, self.white
+            return "OK", self.red, self.white
 
 
 if __name__ == "__main__":
@@ -91,8 +94,9 @@ if __name__ == "__main__":
         devname='/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0',
         name="led1"
     )
-    print(d.call("start"))
+    # print(d.call("start"))
     print(d.call("stop"))
-    print(d.call("set_red_current",  **{"current": 98}))
-    print(d.call("set_white_current", **{"current": 99}))
+    print(d.call("set_red_current",  **{"current": 78}))
+    print(d.call("set_white_current", **{"current": 79}))
+    print(d.call("get_current"))
     print(d.call("start"))
