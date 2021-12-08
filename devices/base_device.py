@@ -9,7 +9,18 @@ from abc import ABC, abstractmethod, abstractproperty
 # import inspect
 # from functools import wraps
 # from inspect import Parameter, Signature
-# import pickle, sys
+import sys, os
+
+try:
+    from utils.logger import PrintLogger
+    from nodes.command import CommandRepr
+except ModuleNotFoundError:
+    # here we trying to manually add our lib path to python path
+    abspath = os.path.abspath("..")
+    sys.path.insert(0, "{}/utils".format(abspath))
+    sys.path.insert(0, "{}/nodes".format(abspath))
+    from command import CommandRepr
+    from logger import PrintLogger
 
 
 class BaseDevice(ABC):
@@ -30,7 +41,7 @@ class BaseDevice(ABC):
     # technical methods, those provide base functionality
     def __init__(self, name):
         self.name = name
-        self._description = "Abstract BaseDevice class"  # here we can put device description
+        self._annotation = "Abstract BaseDevice class"  # here we can put device description
         # for more convenient work of the remote operator
         self._available_states = [
             "not_started",  # device is ok, but it is still not started by user
@@ -42,24 +53,65 @@ class BaseDevice(ABC):
             "critical"  # fatal error, device is dead
         ]
         self._status = "not_started"
-        self._available_commands = [
-            "info",  # command for getting base description of device
-            "start",  # command to do some mystical preparation work like low-level calibration
-            # or simple checking that real sensor is alive
-            "stop",  # cpmmand to do some mystical pausing work like closing valves or smth
-            "kill"  # command to fully stop work of device
-        ]
+
+
+
+        info_command = CommandRepr(
+            name="info",
+            annotation="full info about device and its commands",
+            output_kwargs={"info_str": "str"}
+        )
+
+        start_command = CommandRepr(
+            name="start",
+            annotation="command to do some mystical preparation work like low-level calibration",
+        )
+
+        stop_command = CommandRepr(
+            name="stop",
+            annotation="command to do some mystical pausing work like closing valves or smth",
+        )
+
+        kill_command = CommandRepr(
+            name="kill",
+            annotation="command to fully stop work of device",
+        )
+
+        self._available_commands = [info_command, stop_command, start_command, kill_command]
+        # user have to manually add his custom commands to that list
+
+        self._repr = self.device_repr()
+
+
+        # self._available_commands = [
+        #     "info",  # command for getting base description of device
+        #     "start",  # command to do some mystical preparation work like low-level calibration
+        #     # or simple checking that real sensor is alive
+        #     "stop",  # cpmmand to do some mystical pausing work like closing valves or smth
+        #     "kill"  # command to fully stop work of device
+        # ]
         # also user must add here some special commands like "get_data" or "calibrate" or smth
         # and write handlers for them in device_commands_handler
 
+    def device_repr(self):
+
+        command_reprs = {c.name: c.__repr__() for c in self._available_commands}
+
+        repr_ = {
+            "name": self.name,
+            "info": self._annotation,
+            "status": self._status,
+            "commands": command_reprs
+        }
+        return repr_
+
     def call(self, command, **kwargs):
+
+
+
         if command == "info":
-            info = {
-                "name": self.name,
-                "info": self._description,
-                "status": self._status,
-                "commands": self._available_commands
-            }
+
+
             return info
         else:
             # must be redefined by user
@@ -71,6 +123,15 @@ class BaseDevice(ABC):
             raise AttributeError('Set of available states cannot be changed')
         else:
             self.__dict__[key] = value
+
+    def get_image(self):
+        """
+        image is like a serialized footprint of object
+        it stores all data, that user need to call this device remotely
+        in form of dict-like object
+        :return:
+        """
+        pass
 
 
 # class VerySmartDevice ():

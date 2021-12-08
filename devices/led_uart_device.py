@@ -85,7 +85,7 @@ class LedUartDevice(BaseDevice):
                 raise ConnectionError("ERROR {}".format(e))
 
         if command == "get_current":
-            print("command == 'get_state'")
+            print("command == 'get_current'")
             return "OK", self.red, self.white
 
 
