@@ -69,7 +69,7 @@ if __name__ == '__main__':
         print("we got raw resp: {}".format(res))
         decoded_resp = Message.parse_zmq_msg(res)
         print("we got resp from node1:\n{}".format(decoded_resp))
-        
+
 
         #2
         print("available devices for that node: TODO")

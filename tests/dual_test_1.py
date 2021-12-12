@@ -80,7 +80,7 @@ class TestLedNode(BaseNode):
 if __name__ == '__main__':
     list_of_nodes1 = [
         # {"name": "node1", "address": "tcp://192.168.100.4:5566"},
-        {"name": "node1", "address": "tcp://10.9.0.21:5566"},
+        {"name": "node1", "address": "tcp://10.9.0.23:5566"},
         # {"name": "node2", "address": "tcp://192.168.100.8:5567"},
         # {"name": "node3", "address": "tcp://192.168.100.8:5568"}
     ]
