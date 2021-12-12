@@ -43,7 +43,7 @@ if __name__ == '__main__':
     # n2 = TestLedNode(name="node2", endpoint="tcp://192.168.100.4:5567", list_of_nodes=list_of_nodes1)
     # n3 = TestLedNode(name="node3", endpoint="tcp://192.168.100.4:5568", list_of_nodes=list_of_nodes1)
     # n1.start()
-    client = PlexusUserApi(endpoint="tcp://10.9.0.21:5565", name="client", list_of_nodes=list_of_nodes1)
+    client = PlexusUserApi(endpoint="tcp://10.9.0.1:5565", name="client", list_of_nodes=list_of_nodes1)
     # client = PlexusUserApi(endpoint="tcp://10.9.0.21:5565", name="client", list_of_nodes=list_of_nodes1)
 
     while True:
@@ -59,7 +59,7 @@ if __name__ == '__main__':
         info_message = Message(
             addr=str(user_node),
             device=str(user_node),
-            command="unfo",
+            command="info",
             msg_id=uuid.uuid4().hex,
             time_=time.time()
         )

@@ -123,14 +123,14 @@ class BaseDevice(ABC):
         else:
             self.__dict__[key] = value
 
-    def get_image(self):
-        """
-        image is like a serialized footprint of object
-        it stores all data, that user need to call this device remotely
-        in form of dict-like object
-        :return:
-        """
-        pass
+    # def get_image(self):
+    #     """
+    #     image is like a serialized footprint of object
+    #     it stores all data, that user need to call this device remotely
+    #     in form of dict-like object
+    #     :return:
+    #     """
+    #     pass
 
 
 # class VerySmartDevice ():
