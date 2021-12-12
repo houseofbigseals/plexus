@@ -195,13 +195,13 @@ class BaseNode(ABC, Process):
 
     def get_image(self):
         """ creates info dict for this node """
-        self.logger("devices : {}".format(self._devices))
+        # self.logger("devices : {}".format(self._devices))
         device_images = {d.name: d.get_image() for d in self._devices}
-        self.logger("device images: {}".format(device_images))
+        # self.logger("device images: {}".format(device_images))
         custom_command_images = {d.name: d.get_image() for d in self.custom_commands}
-        self.logger("custom_command_images: {}".format(custom_command_images))
+        # self.logger("custom_command_images: {}".format(custom_command_images))
         system_command_images = {d.name: d.get_image() for d in self.system_commands}
-        self.logger("system_command_images: {}".format(system_command_images))
+        # self.logger("system_command_images: {}".format(system_command_images))
 
         image_ = {
             "name": self.name,

@@ -62,7 +62,7 @@ class Message:
     def parse_zmq_msg(cls, msg):
         addr_decoded = msg[0].decode('ascii')
         decoded_dict = pickle.loads(msg[2])
-        return addr_decoded, decoded_dict
+        return [addr_decoded, decoded_dict]
 
     @classmethod
     def create_msg_from_addr_and_dict(cls, addr_decoded: str, decoded_dict: dict):

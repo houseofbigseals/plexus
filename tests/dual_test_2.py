@@ -66,23 +66,51 @@ if __name__ == '__main__':
 
         print("msg to send is {}".format(info_message))
         res = client.send_msg(info_message)
-        print("we got raw resp: {}".format(res))
-        decoded_resp = Message.parse_zmq_msg(res)
-        print("we got resp from node1:\n{}".format(decoded_resp))
+        # print("we got raw resp: {}".format(res))
+        addr_decoded, decoded_resp = Message.parse_zmq_msg(res)
+        print("=================================================================")
+        print("we got resp from node: {}".format(user_node))
+        for i in decoded_resp:
+            print(i, type(i))
+        all_answer = decoded_resp["data"]
+
+        print("{} - {}".format("device", decoded_resp["device"]))
+        print("{} - {}".format("command", decoded_resp["command"]))
+
+        print("=================================================================")
+
+        for dev in decoded_resp["data"]["devices"]:
+            # print("{} - {}\n".format(dev, all_answer[key]))
+            print("======== device name - {}".format(all_answer["devices"][dev]["name"]))
+            print("======== device state - {}".format(all_answer["devices"][dev]["status"]))
+            print("======== device info - {}".format(all_answer["devices"][dev]["info"]))
 
 
+            print("=================================================================")
+
+            for comm in decoded_resp["data"]["devices"][dev]["commands"]:
+                print("================ {} - {}".format(comm, decoded_resp["data"]["devices"][dev]["commands"][comm]))
         #2
-        print("available devices for that node: TODO")
+
+        print("available devices for that node:")
+        for dev in decoded_resp["data"]["devices"]:
+            print("======== device name - {}".format(decoded_resp["data"]["devices"][dev]["name"]))
         user_device = input("select device: ")
         print("your input: {}".format(user_device))
 
         #3
-        print("available commands for that device: TODO")
+        print("available commands for that device:")
+        for comm in decoded_resp["data"]["devices"][user_device]["commands"]:
+            print("================ {} - {}".format(comm, decoded_resp["data"]["devices"][user_device]["commands"][comm]))
         user_command = input("select command: ")
         print("your input: {}".format(user_command))
 
         #4
-        print("available args for that device: {'TODO': 1, 'TODO2': 'red'}")
+        print("available args for that device: ")
+        # for arg_ in decoded_resp["data"]["devices"][user_device]["commands"][user_command]["input_kwargs"]:
+        print("========================= {} ".format(
+                decoded_resp["data"]["devices"][user_device]["commands"][user_command]["input_kwargs"]
+        ))
         user_args = input("write args in string like in previous template: ")
         # here must be also parsing of this string
         print("your input: {}".format(user_args))

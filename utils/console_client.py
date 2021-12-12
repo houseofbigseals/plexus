@@ -96,7 +96,7 @@ class PlexusUserApi:
         msg = msg_to_send.create_zmq_msg()
         sock.send_multipart(msg)
         answer = sock.recv_multipart()
-        self.logger(answer)
+        # self.logger(answer)
         return answer
 
 
