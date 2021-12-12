@@ -4,11 +4,14 @@ import time, sys, os
 try:
     from devices.base_device import BaseDevice
     from low_level_drivers.bmp180_driver import get_bmp180_data
+    from nodes.command import Command
 except ModuleNotFoundError:
     # here we trying to manually add our lib path to python path
     abspath = os.path.abspath("..")
     sys.path.insert(0, "{}/devices".format(abspath))
     sys.path.insert(0, "{}/low_level_drivers".format(abspath))
+    sys.path.insert(0, "{}/nodes".format(abspath))
+    from command import Command
     from base_device import BaseDevice
     from bmp180_driver import get_bmp180_data
 
@@ -22,8 +25,34 @@ class BMP180Sensor(BaseDevice):
         # manually add here important variables and commands
         self.bmp_180_state = "None"
         self._description = "this is simple test device to control simple sensor"
-        self._available_commands.extend(["get_state", "get_temperature",
-                                         "get_pressure", "get_temp_and_press"])
+
+        get_state_command = Command(
+            name="get_state",
+            annotation="get_state of sensor",
+            output_kwargs={"state": "str"}
+        )
+
+        get_temperature_command = Command(
+            name="get_temperature",
+            annotation="get_temperature",
+            output_kwargs={"temp": "float"}
+        )
+
+        get_pressure_command = Command(
+            name="get_pressure",
+            annotation="get_pressure",
+            output_kwargs={"pressure": "float"}
+        )
+
+        get_temp_and_press_command = Command(
+            name="get_temp_and_press",
+            annotation="get_temp_and_press",
+            output_kwargs={"temp and pressure": "tuple"}
+        )
+
+
+        self._available_commands.extend([get_pressure_command, get_temperature_command,
+                                         get_temp_and_press_command, get_state_command])
 
     def device_commands_handler(self, command, **kwargs):
         if command == "get_state":

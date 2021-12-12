@@ -34,7 +34,7 @@ class RpiGpioRelayDevice(BaseDevice):
         super().__init__(name)
         self._pin = pin_name
         self._relay = RpiGpioChannelHandler(pin_name)
-        self._description = "this is simple test device to control one relay channel"
+        self._annotation = "this is simple test device to control one relay channel"
 
         on_command = Command(
             name="on",
