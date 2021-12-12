@@ -98,7 +98,7 @@ class BaseDevice(ABC):
 
     def get_image(self):
 
-        print(self._available_commands)
+
 
         command_images = {c.name: c.get_image() for c in self._available_commands}
 

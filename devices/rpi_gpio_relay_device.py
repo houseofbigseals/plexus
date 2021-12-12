@@ -50,6 +50,7 @@ class RpiGpioRelayDevice(BaseDevice):
 
         self._available_commands.extend([on_command, off_command])
         self._state = "off"
+        print("awailable commands for me {}".format(self._available_commands))
 
     def device_commands_handler(self, command, **kwargs):
         if command == "on":
