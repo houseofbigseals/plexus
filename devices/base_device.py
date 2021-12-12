@@ -13,13 +13,13 @@ import sys, os
 
 try:
     from utils.logger import PrintLogger
-    from nodes.command import CommandRepr
+    from nodes.command import Command
 except ModuleNotFoundError:
     # here we trying to manually add our lib path to python path
     abspath = os.path.abspath("..")
     sys.path.insert(0, "{}/utils".format(abspath))
     sys.path.insert(0, "{}/nodes".format(abspath))
-    from command import CommandRepr
+    from command import Command
     from logger import PrintLogger
 
 
@@ -56,31 +56,34 @@ class BaseDevice(ABC):
 
 
 
-        info_command = CommandRepr(
+        info_command = Command(
             name="info",
             annotation="full info about device and its commands",
             output_kwargs={"info_str": "str"}
         )
 
-        start_command = CommandRepr(
+        start_command = Command(
             name="start",
             annotation="command to do some mystical preparation work like low-level calibration",
+            output_kwargs={"ack_str": "str"}
         )
 
-        stop_command = CommandRepr(
+        stop_command = Command(
             name="stop",
             annotation="command to do some mystical pausing work like closing valves or smth",
+            output_kwargs={"ack_str": "str"}
         )
 
-        kill_command = CommandRepr(
+        kill_command = Command(
             name="kill",
             annotation="command to fully stop work of device",
+            output_kwargs={"ack_str": "str"}
         )
 
         self._available_commands = [info_command, stop_command, start_command, kill_command]
         # user have to manually add his custom commands to that list
 
-        self._repr = self.device_repr()
+        self._image = self.get_image()
 
 
         # self._available_commands = [
@@ -93,26 +96,22 @@ class BaseDevice(ABC):
         # also user must add here some special commands like "get_data" or "calibrate" or smth
         # and write handlers for them in device_commands_handler
 
-    def device_repr(self):
+    def get_image(self):
 
-        command_reprs = {c.name: c.__repr__() for c in self._available_commands}
+        command_images = {c.name: c.get_image() for c in self._available_commands}
 
-        repr_ = {
+        image_ = {
             "name": self.name,
             "info": self._annotation,
             "status": self._status,
-            "commands": command_reprs
+            "commands": command_images
         }
-        return repr_
+        return image_
 
     def call(self, command, **kwargs):
 
-
-
         if command == "info":
-
-
-            return info
+            return self.__repr__()
         else:
             # must be redefined by user
             return self.device_commands_handler(command, **kwargs)

@@ -17,6 +17,7 @@ from typing import Any
 try:
     from utils.logger import PrintLogger
     from nodes.message import Message
+    from nodes.command import Command
 except ModuleNotFoundError:
     # here we trying to manually add our lib path to python path
     abspath = os.path.abspath("..")
@@ -25,13 +26,8 @@ except ModuleNotFoundError:
     from message import Message
     from logger import PrintLogger
     from message import Message
+    from command import Command
 
-
-# commands like "kill", "stop", "status"
-# must be handled by parent class in parse_msg method
-# because they are very familiar for all types of nodes
-# if user want to parse they manually, he must override parent methods like:
-# on_kill(), on_start(), on_stop(), on_status()
 
 
 # all this text descriptions are for remote user`s SCADA client
@@ -59,18 +55,15 @@ class BaseNode(ABC, Process):
         # self.check_timer.start()
         pass
 
-    @abstractmethod
     def custom_request_parser(self, stream: ZMQStream, reqv_msg: Message):
         # here user can add custom parsing of received message
         pass
 
-    @abstractmethod
     def custom_response_parser(self, stream: ZMQStream,  resp_msg: Message):
         # here user can add custom parsing of received answer for his message
         pass
 
     # ===============================================================================
-
 
     def __init__(self, endpoint: str, name: str, list_of_nodes: list, is_daemon: bool = True):
         """
@@ -106,10 +99,41 @@ class BaseNode(ABC, Process):
         self.main_stream = None
         self.ping_timer = None
         self.logger("end init")
-        self.status = "not_started"
+        self._status = "not_started"
         self.ping_period = 1000
         self._sockets = dict()
-        self._description = "abstract base node"
+        self._annotation = "abstract base node"
+
+        info_command = Command(
+            name="info",
+            annotation="full info about node and its devices",
+            output_kwargs={"info_dict": "dict"}
+        )
+
+        ping_command = Command(
+            name="ping",
+            annotation="simple ping",
+            output_kwargs={"ack_str": "str"}
+        )
+
+        # start_command = Command(
+        #     name="start",
+        #     annotation="command to do some mystical preparation work like low-level calibration",
+        #     output_kwargs={"ack_str": "str"}
+        # )
+        #
+        # stop_command = Command(
+        #     name="stop",
+        #     annotation="command to do some mystical pausing work like closing valves or smth",
+        #     output_kwargs={"ack_str": "str"}
+        # )
+        #
+        # kill_command = Command(
+        #     name="kill",
+        #     annotation="command to fully stop work of device",
+        #     output_kwargs={"ack_str": "str"}
+        # )
+        self.system_commands = [info_command, ping_command]
 
     # ========= tech methods, those must not be redefined by user ==========
 
@@ -159,19 +183,31 @@ class BaseNode(ABC, Process):
         self.custom_preparation()
 
         device_names = [d.name for d in self._devices]
-        self.info = {
-            "name": self.name,
-            "status": self.status,
-            "devices": device_names
-        }
+        self.info = self.get_image()
 
         # the loop
         self.loop = IOLoop.current()
         self.logger("go to loop")
         self.ping_timer.start()
-        self.status = "work"
+        self._status = "work"
         # go to endless loop with reading messages and checking PeriodicalCallbacks, created by user
         self.loop.start()
+
+    def get_image(self):
+        """ creates info dict for this node """
+        device_images = {d.name: d.get_image() for d in self._devices}
+        custom_command_images = {d.name: d.get_image() for d in self.custom_commands}
+        system_command_images = {d.name: d.get_image() for d in self.system_commands}
+
+        image_ = {
+            "name": self.name,
+            "info": self._annotation,
+            "status": self._status,
+            "devices": device_images,
+            "system_commands": system_command_images,
+            "custom_commands": custom_command_images
+        }
+        return image_
 
     def send(self, stream: ZMQStream, msg_to_send: Message):
         """handler for sending data to another node through local broker """
@@ -223,11 +259,11 @@ class BaseNode(ABC, Process):
         # 1) lets check if it is response for one of our requests to another node
         self.logger(decoded_dict["command"])
 
-        if decoded_dict["command"] == "RESP":
+        if decoded_dict["command"] == "resp":
             # so we dont care about "device" field
             # it means that it it resp to us and we must not answer
             # answered_resp = self.extract_awaiting_msg(decoded_dict["msg_id"])
-            self.logger("command RESP received in msg with id {}".format(decoded_dict["msg_id"]))
+            self.logger("command resp received in msg with id {}".format(decoded_dict["msg_id"]))
             self.logger("msg body is {}".format(decoded_dict))
 
             # here app must find original msg by its id and delete it from unanswered queue
@@ -257,7 +293,7 @@ class BaseNode(ABC, Process):
                         res_msg = Message(
                             addr=addr_decoded,
                             device=decoded_dict["device"],
-                            command="RESP",
+                            command="resp",
                             msg_id=decoded_dict["msg_id"],
                             time_=time.time(),
                             data=result
@@ -270,7 +306,7 @@ class BaseNode(ABC, Process):
                         res_msg = Message(
                             addr=addr_decoded,
                             device=decoded_dict["device"],
-                            command="RESP",
+                            command="resp",
                             msg_id=decoded_dict["msg_id"],
                             time_=time.time(),
                             data=error_str
@@ -285,46 +321,42 @@ class BaseNode(ABC, Process):
 
     def handle_system_msgs(self, stream, reqv_msg: Message):
         """handler to base commands, those can be sent to every node by another node"""
-        if reqv_msg.command == "INFO":
+        if reqv_msg.command == "info":
             # it means that it it reqv to us and we must answer
             # in answer we need to send all info about node and its devices
-            self.logger("command INFO received")
+            self.logger("command info received")
 
             # to_addr = from_addr
             # self.send(stream=stream,
             #     addr=to_addr,
             #     device=self.name,
-            #     command="RESP",
+            #     command="resp",
             #     msg_id=msg_dict["id"],
             #     data=info)
-            device_names = [d.name for d in self._devices]
-            self.info = {
-                "name": self.name,
-                "status": self.status,
-                "devices": device_names
-            }
+            # device_names = [d.name for d in self._devices]
+            self.info = self.get_image()
 
             res_msg = Message(
                 addr=reqv_msg.addr,
                 device=reqv_msg.device,
-                command="RESP",
+                command="resp",
                 msg_id=reqv_msg.msg_id,
                 time_=time.time(),
-                data=str(self.info)
+                data=self.info
             )
             self.send(stream, res_msg)
 
-        if reqv_msg.command == "PING":
+        if reqv_msg.command == "ping":
             # it means that it it reqv to us and we must answer
             # in answer we need to send all info about node and its devices
-            self.logger("command PING received")
+            self.logger("command ping received")
             res_msg = Message(
                 addr=reqv_msg.addr,
                 device=reqv_msg.device,
-                command="RESP",
+                command="resp",
                 msg_id=reqv_msg.msg_id,
                 time_=time.time(),
-                data="ACK"
+                data="ack"  # TODO add here full network map to use in hot_plug situation
             )
             self.send(stream, res_msg)
             # we have to send resp with standard info about this node and its devices
@@ -342,7 +374,7 @@ class BaseNode(ABC, Process):
             ping_msg = Message(
                 addr=s,
                 device=s,  # here addr is name and device is name too
-                command="PING",
+                command="ping",
                 msg_id=uuid.uuid4().hex,
                 time_=time.time(),
                 data=b''

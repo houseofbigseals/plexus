@@ -7,7 +7,7 @@
 # from typing import Any
 
 
-class CommandRepr:
+class Command:
     """
     this is class for storing command and its args
     and also creating their representation image
@@ -23,12 +23,15 @@ class CommandRepr:
         self.input_args = input_kwargs
         self.output_args = output_kwargs
         self.image = {"name": self.name, "annotation": self.annotation,
-                       "input_args": self.input_args, "output_args": self.output_args}.__repr__()
+                       "input_kwargs": self.input_args, "output_kwargs": self.output_args}
 
     def __str__(self):
-        return self.image
+        return self.image.__repr__()
 
     def __repr__(self):
+        return self.image.__repr__()
+
+    def get_image(self):
         return self.image
 
 

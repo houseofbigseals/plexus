@@ -55,6 +55,22 @@ if __name__ == '__main__':
         user_node = input("select node: ")
         print("your input: {}".format(user_node))
 
+        # now we have to get info about this node to show it to user
+        info_message = Message(
+            addr=str(user_node),
+            device=str(user_node),
+            command="unfo",
+            msg_id=uuid.uuid4().hex,
+            time_=time.time()
+        )
+
+        print("msg to send is {}".format(info_message))
+        res = client.send_msg(info_message)
+        print("we got raw resp: {}".format(res))
+        decoded_resp = Message.parse_zmq_msg(res)
+        print("we got resp from node1:\n{}".format(decoded_resp))
+        
+
         #2
         print("available devices for that node: TODO")
         user_device = input("select device: ")
