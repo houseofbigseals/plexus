@@ -292,7 +292,7 @@ class BaseNode(ABC, Process):
                     self.logger("found requested device in our devices {}".format(device_.name))
                     # then call selected method on this device with that params
                     try:
-                        if decoded_dict["data"]:
+                        if decoded_dict["data"]:  # because it can be empty or b'' or None or smth same
                             result = device_.call(decoded_dict["command"], **decoded_dict["data"])
                         else:
                             result = device_.call(decoded_dict["command"], **{})
@@ -318,7 +318,7 @@ class BaseNode(ABC, Process):
                             time_=time.time(),
                             data=error_str
                         )
-                        self.logger("try to send resp wit error {}".format(res_msg))
+                        self.logger("try to send resp with error {}".format(res_msg))
                         self.send(stream, res_msg)
 
             # this is shit and we dont want to handle it
@@ -372,12 +372,7 @@ class BaseNode(ABC, Process):
         # method to ping other sockets
         self.logger("try to send ping")
         for s in self._sockets.keys():
-            # self._sockets[n["name"]] = {
-            #     "stream": new_stream,
-            #     "socket": new_socket,
-            #     "address": n["address"],
-            #     "status": "not_started"
-            # }
+
             ping_msg = Message(
                 addr=s,
                 device=s,  # here addr is name and device is name too
@@ -386,7 +381,6 @@ class BaseNode(ABC, Process):
                 time_=time.time(),
                 data=b''
             )
-            # print(self._sockets[s]["stream"])
             self.send(stream=self._sockets[s]["stream"], msg_to_send=ping_msg)
 
     # def store_awaiting_msg(self, resp_msg: Message):

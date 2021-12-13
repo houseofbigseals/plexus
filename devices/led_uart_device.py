@@ -60,7 +60,7 @@ class LedUartDevice(BaseDevice):
 
         get_current_command = Command(
             name="get_current",
-            annotation="get last currents, saved in led driver",
+            annotation="get last currents, saved in led driver, still undone",
             output_kwargs={"results": "tuple"}
         )
 

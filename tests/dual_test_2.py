@@ -97,13 +97,16 @@ if __name__ == '__main__':
             print("======== device name - {}".format(decoded_resp["data"]["devices"][dev]["name"]))
         user_device = input("select device: ")
         print("your input: {}".format(user_device))
+        if user_device == user_node:
 
         #3
         print("available commands for that device:")
         for comm in decoded_resp["data"]["devices"][user_device]["commands"]:
-            print("================ {} - {}".format(comm, decoded_resp["data"]["devices"][user_device]["commands"][comm]))
+            print("================ {} - {}".format(comm, decoded_resp["data"]\
+            ["devices"][user_device]["commands"][comm]))
         user_command = input("select command: ")
         print("your input: {}".format(user_command))
+
 
         #4
         print("available args for that device: ")
