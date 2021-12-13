@@ -111,7 +111,15 @@ if __name__ == '__main__':
         print("========================= {} ".format(
                 decoded_resp["data"]["devices"][user_device]["commands"][user_command]["input_kwargs"]
         ))
-        user_args = input("write args in string like in previous template: ")
+        user_args = dict()
+        if decoded_resp["data"]["devices"][user_device]\
+            ["commands"][user_command]["input_kwargs"]:
+            for a in decoded_resp["data"]["devices"][user_device]\
+                ["commands"][user_command]["input_kwargs"].keys():
+                user_args[a] = input("write arg {} : ".format(a))
+
+
+        # user_args = input("write args in string like in previous template: ")
         # here must be also parsing of this string
         print("your input: {}".format(user_args))
 
@@ -127,7 +135,7 @@ if __name__ == '__main__':
             msg_id=uuid.uuid4().hex,
             time_=time.time(),
             # data={"new_state": int(user_arg)}
-            data={"current": int(user_args)}
+            data=user_args
         )
 
 

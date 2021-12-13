@@ -113,7 +113,7 @@ class BaseDevice(ABC):
     def call(self, command, **kwargs):
 
         if command == "info":
-            return self.__repr__()
+            return self.get_image()
         else:
             # must be redefined by user
             return self.device_commands_handler(command, **kwargs)

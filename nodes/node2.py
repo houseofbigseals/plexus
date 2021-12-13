@@ -292,7 +292,10 @@ class BaseNode(ABC, Process):
                     self.logger("found requested device in our devices {}".format(device_.name))
                     # then call selected method on this device with that params
                     try:
-                        result = device_.call(decoded_dict["command"], **decoded_dict["data"])
+                        if decoded_dict["data"]:
+                            result = device_.call(decoded_dict["command"], **decoded_dict["data"])
+                        else:
+                            result = device_.call(decoded_dict["command"], **{})
                         # encoded_result = pickle.dumps(result)
                         res_msg = Message(
                             addr=addr_decoded,
