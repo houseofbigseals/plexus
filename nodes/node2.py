@@ -91,7 +91,7 @@ class BaseNode(ABC, Process):
         self.info = None  # by default no devices in node, so None is info
         # we can update info later
         # for example - in run()
-        self.custom_commands = list()  # by default there is no custom commands
+        # self.custom_commands = list()  # by default there is no custom commands
 
         # Prepare our context and sockets
         self.context = zmq.Context()
@@ -198,7 +198,7 @@ class BaseNode(ABC, Process):
         # self.logger("devices : {}".format(self._devices))
         device_images = {d.name: d.get_image() for d in self._devices}
         # self.logger("device images: {}".format(device_images))
-        custom_command_images = {d.name: d.get_image() for d in self.custom_commands}
+        # custom_command_images = {d.name: d.get_image() for d in self.custom_commands}
         # self.logger("custom_command_images: {}".format(custom_command_images))
         system_command_images = {d.name: d.get_image() for d in self.system_commands}
         # self.logger("system_command_images: {}".format(system_command_images))
@@ -208,8 +208,8 @@ class BaseNode(ABC, Process):
             "info": self._annotation,
             "status": self._status,
             "devices": device_images,
-            "system_commands": system_command_images,
-            "custom_commands": custom_command_images
+            "system_commands": system_command_images  #,
+            # "custom_commands": custom_command_images
         }
         return image_
 
@@ -332,15 +332,6 @@ class BaseNode(ABC, Process):
             # it means that it it reqv to us and we must answer
             # in answer we need to send all info about node and its devices
             self.logger("command info received")
-
-            # to_addr = from_addr
-            # self.send(stream=stream,
-            #     addr=to_addr,
-            #     device=self.name,
-            #     command="resp",
-            #     msg_id=msg_dict["id"],
-            #     data=info)
-            # device_names = [d.name for d in self._devices]
             self.info = self.get_image()
 
             res_msg = Message(
@@ -353,7 +344,7 @@ class BaseNode(ABC, Process):
             )
             self.send(stream, res_msg)
 
-        if reqv_msg.command == "ping":
+        elif reqv_msg.command == "ping":
             # it means that it it reqv to us and we must answer
             # in answer we need to send all info about node and its devices
             self.logger("command ping received")
@@ -367,6 +358,12 @@ class BaseNode(ABC, Process):
             )
             self.send(stream, res_msg)
             # we have to send resp with standard info about this node and its devices
+        else:
+            self.handle_custom_system_msgs(stream, reqv_msg)
+
+    def handle_custom_system_msgs(self, stream, reqv_msg: Message):
+        """ user can handle here any custom commands for his custom node"""
+        pass
 
     def on_ping_timer(self):
         # method to ping other sockets

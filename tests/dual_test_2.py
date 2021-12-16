@@ -95,51 +95,89 @@ if __name__ == '__main__':
         print("available devices for that node:")
         for dev in decoded_resp["data"]["devices"]:
             print("======== device name - {}".format(decoded_resp["data"]["devices"][dev]["name"]))
+        print("======== device name - {}".format(user_node))  # for using system commands of this node
         user_device = input("select device: ")
         print("your input: {}".format(user_device))
+
         if user_device == user_node:
+            # 3
+            print("available system commands for that node:")
+            print("{}".format(decoded_resp["data"]["system_commands"]))
+            for c in decoded_resp["data"]["system_commands"]:
+                print("================ {} - {}".format(
+                    c, decoded_resp["data"]["system_commands"][c]["annotation"]
+                ))
+            # print("{}".format(decoded_resp["data"]["custom_commands"]))
+            # print("available custom commands for that node:")
+            # for c in decoded_resp["data"]["custom_commands"]:
+            #     print("================ {} - {}".format(
+            #         c, c["annotation"]
+            #     ))
+            user_command = input("select command: ")
+            print("your input: {}".format(user_command))
 
-        #3
-        print("available commands for that device:")
-        for comm in decoded_resp["data"]["devices"][user_device]["commands"]:
-            print("================ {} - {}".format(comm, decoded_resp["data"]\
-            ["devices"][user_device]["commands"][comm]))
-        user_command = input("select command: ")
-        print("your input: {}".format(user_command))
+            # 4
+
+            print("available args for that command: ")
+
+            print("========================= {} ".format(
+                    decoded_resp["data"]["system_commands"][user_command]["input_kwargs"]
+            ))
+
+            user_args = dict()
+            if decoded_resp["data"]["system_commands"][user_command]["input_kwargs"]:
+                for a in decoded_resp["data"]["system_commands"][user_command]["input_kwargs"].keys():
+                    user_args[a] = input("write arg {} : ".format(a))
+
+            print("your input: {}".format(user_args))
+
+            m = Message(
+                addr=str(user_node),
+                device=str(user_device),
+                command=str(user_command),
+                msg_id=uuid.uuid4().hex,
+                time_=time.time(),
+                # data={"new_state": int(user_arg)}
+                data=user_args
+            )
+
+        else:
+
+            #3
+            print("available commands for that device:")
+            for comm in decoded_resp["data"]["devices"][user_device]["commands"]:
+                print("================ {} - {}".format(comm, decoded_resp["data"]\
+                ["devices"][user_device]["commands"][comm]))
+            user_command = input("select command: ")
+            print("your input: {}".format(user_command))
 
 
-        #4
-        print("available args for that device: ")
-        # for arg_ in decoded_resp["data"]["devices"][user_device]["commands"][user_command]["input_kwargs"]:
-        print("========================= {} ".format(
-                decoded_resp["data"]["devices"][user_device]["commands"][user_command]["input_kwargs"]
-        ))
-        user_args = dict()
-        if decoded_resp["data"]["devices"][user_device]\
-            ["commands"][user_command]["input_kwargs"]:
-            for a in decoded_resp["data"]["devices"][user_device]\
-                ["commands"][user_command]["input_kwargs"].keys():
-                user_args[a] = input("write arg {} : ".format(a))
+            #4
+            print("available args for that command: ")
+            # for arg_ in decoded_resp["data"]["devices"][user_device]["commands"][user_command]["input_kwargs"]:
+            print("========================= {} ".format(
+                    decoded_resp["data"]["devices"][user_device]["commands"][user_command]["input_kwargs"]
+            ))
+            user_args = dict()
+            if decoded_resp["data"]["devices"][user_device]\
+                ["commands"][user_command]["input_kwargs"]:
+                for a in decoded_resp["data"]["devices"][user_device]\
+                    ["commands"][user_command]["input_kwargs"].keys():
+                    user_args[a] = input("write arg {} : ".format(a))
 
+            print("your input: {}".format(user_args))
 
-        # user_args = input("write args in string like in previous template: ")
-        # here must be also parsing of this string
-        print("your input: {}".format(user_args))
+            # TODO fix all things here
 
-        # TODO fix all things here
-
-        # n2.start()
-        # time.sleep(5.2)
-
-        m = Message(
-            addr=str(user_node),
-            device=str(user_device),
-            command=str(user_command),
-            msg_id=uuid.uuid4().hex,
-            time_=time.time(),
-            # data={"new_state": int(user_arg)}
-            data=user_args
-        )
+            m = Message(
+                addr=str(user_node),
+                device=str(user_device),
+                command=str(user_command),
+                msg_id=uuid.uuid4().hex,
+                time_=time.time(),
+                # data={"new_state": int(user_arg)}
+                data=user_args
+            )
 
 
         # m = Message(
