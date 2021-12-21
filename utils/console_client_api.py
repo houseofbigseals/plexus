@@ -72,7 +72,10 @@ class PlexusUserApi:
                 self.network_state[n["name"]] = {"address": n["address"],
                                                  "status": "unknown",
                                                  "last_msg_sent": None,
-                                                 "last_msg_received": None}
+                                                 "last_msg_received": None,
+                                                 "info": None,
+                                                 "last_info_received": None}
+
                 self.logger("self network state: {}".format(self.network_state))
 
                 # for now we will keep socket instance,  stream instance, last_time, and status
@@ -81,8 +84,8 @@ class PlexusUserApi:
                                             "status": "not_started"}
 
                 self.logger(self._sockets[n["name"]])
+        time.sleep(1)  # without that pause all stuff crushes
 
-        # self.ping_timer = PeriodicCallback(self.on_ping_timer, self.ping_period)
 
 
     def send_msg(self, msg_to_send: Message):
@@ -99,10 +102,6 @@ class PlexusUserApi:
         msg = msg_to_send.create_zmq_msg()
         self.logger(msg)
         sd = sock.send_multipart(msg ) #, flags=zmq.NOBLOCK)
-        time.sleep(1)  # IMPORTANT: this is very sick thing https://github.com/zeromq/pyzmq/issues/1320
-        # while not sd.pending():
-        #     time.sleep(1)
-        #     print("wait for pending")
         self.logger("msg sent, lets wait for resp")
         answer = sock.recv_multipart()#flags=zmq.NOBLOCK)
         # self.logger(answer)
@@ -120,34 +119,12 @@ class PlexusUserApi:
         self.logger("self network state: {}".format(self.network_state))
         return self.network_state
 
-
-
-    def get_full_device_info(self):
-        """
-        returns info about selected device with its commands and correspond params
-        :return:
-        """
-        pass
-
-
-
-    # ===========================================================================================================
-    # user args parser and other utils to make messaging more simple
-
-    def user_input_parse(self):
-        """
-        simple method to parse and complete user commands from shell
-        it uses argparse to handle user input
-        and own send method to communicate with other nodes
-        """
-
-
     def get_full_node_info(self, nodename: str):
         """
         returns info about node with list of custom node commands and list of all devices and their state
         :return:
         """
-        self.logger("get_full_node_info starts")
+        # self.logger("get_full_node_info starts")
         info_message = Message(
             addr=str(nodename),
             device=str(nodename),
@@ -164,8 +141,28 @@ class PlexusUserApi:
 
         self.logger("{} - {}".format("device", decoded_resp_["device"]))
         self.logger("{} - {}".format("command", decoded_resp_["command"]))
-        self.logger("get_full_node_info ends")
+        # self.logger("get_full_node_info ends")
         return addr_decoded_, decoded_resp_
+
+    def get_full_device_info(self, nodename, devname):
+        """
+        returns info about selected device with its commands and correspond params
+        :return:
+        """
+        pass
+
+    # ===========================================================================================================
+    # user args parser and other utils to make messaging more simple
+
+    def user_input_parse(self):
+        """
+        simple method to parse and complete user commands from shell
+        it uses argparse to handle user input
+        and own send method to communicate with other nodes
+        """
+
+
+
 
 
 if __name__ == "__main__":
@@ -181,7 +178,9 @@ if __name__ == "__main__":
         # {"name": "node3", "address": "tcp://192.168.100.8:5568"}
     ]
     user_api = PlexusUserApi(endpoint="tcp://10.9.0.21:5565", name="client", list_of_nodes=list_of_nodes1)
-    get_full_node_info(user_api, "node1")
+
+    user_api.get_full_node_info("node1")
+
     user_device = input("select device: ")
 
 

@@ -30,13 +30,14 @@ if __name__ == '__main__':
         {"name": "node1", "address": "tcp://10.9.0.23:5566"}
         ]
 
-    client = PlexusUserApi(endpoint="tcp://10.9.0.21:5565", name="client", list_of_nodes=list_of_nodes1)
+    client = PlexusUserApi(endpoint="tcp://10.9.0.1:5565", name="client", list_of_nodes=list_of_nodes1)
 
     print("\nhi\navailable nodes are:")
     for n in list_of_nodes1:
         print(n)
 
-    # user_node = input("select node: ")
+    # x = input("select node: ")
+    # time.sleep(1)
     # user_node = "node1"
     # user_node = input("select node: ")
     # print(len(user_node), type(user_node))

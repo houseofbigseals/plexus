@@ -58,30 +58,32 @@ if __name__ == '__main__':
         user_node = input("select node: ")
         print("your input: {}".format(user_node))
 
-        client.get_full_node_info(user_node)
+        addr_decoded, decoded_resp = client.get_full_node_info(user_node)
         print("++++++++++++++++++++++++++++++ ogogogogogogogogo ++++++++++++++++++++++++++++++++")
 
-        # now we have to get info about this node to show it to user
-        info_message = Message(
-            addr=str(user_node),
-            device=str(user_node),
-            command="info",
-            msg_id=uuid.uuid4().hex,
-            time_=time.time()
-        )
+        # # now we have to get info about this node to show it to user
+        # info_message = Message(
+        #     addr=str(user_node),
+        #     device=str(user_node),
+        #     command="info",
+        #     msg_id=uuid.uuid4().hex,
+        #     time_=time.time()
+        # )
+        #
+        # print("msg to send is {}".format(info_message))
+        # res = client.send_msg(info_message)
+        # # print("we got raw resp: {}".format(res))
+        # addr_decoded, decoded_resp = Message.parse_zmq_msg(res)
+        # print("=================================================================")
+        # print("we got resp from node: {}".format(user_node))
+        # for i in decoded_resp:
+        #     print(i, type(i))
+        # all_answer = decoded_resp["data"]
+        #
+        # print("{} - {}".format("device", decoded_resp["device"]))
+        # print("{} - {}".format("command", decoded_resp["command"]))
 
-        print("msg to send is {}".format(info_message))
-        res = client.send_msg(info_message)
-        # print("we got raw resp: {}".format(res))
-        addr_decoded, decoded_resp = Message.parse_zmq_msg(res)
-        print("=================================================================")
-        print("we got resp from node: {}".format(user_node))
-        for i in decoded_resp:
-            print(i, type(i))
         all_answer = decoded_resp["data"]
-
-        print("{} - {}".format("device", decoded_resp["device"]))
-        print("{} - {}".format("command", decoded_resp["command"]))
 
         print("=================================================================")
 
