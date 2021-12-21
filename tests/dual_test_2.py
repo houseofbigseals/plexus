@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 
 import time
 import uuid
@@ -6,7 +7,7 @@ import sys, os
 # custom path imports
 try:
     from nodes.node2 import BaseNode, PeriodicCallback, Message
-    from utils.console_client import PlexusUserApi
+    from utils.console_client_api import PlexusUserApi
     # from nodes.broker import BrokerNode
     from devices.numlock_device import NumLockDevice
 except Exception:
@@ -19,8 +20,10 @@ except Exception:
     print(sys.path)
     from node2 import BaseNode, PeriodicCallback
     from message import Message
-    from console_client import PlexusUserApi
+    from console_client_api import PlexusUserApi
     from numlock_device import NumLockDevice
+
+
 
 
 if __name__ == '__main__':
@@ -43,8 +46,8 @@ if __name__ == '__main__':
     # n2 = TestLedNode(name="node2", endpoint="tcp://192.168.100.4:5567", list_of_nodes=list_of_nodes1)
     # n3 = TestLedNode(name="node3", endpoint="tcp://192.168.100.4:5568", list_of_nodes=list_of_nodes1)
     # n1.start()
-    client = PlexusUserApi(endpoint="tcp://10.9.0.1:5565", name="client", list_of_nodes=list_of_nodes1)
-    # client = PlexusUserApi(endpoint="tcp://10.9.0.21:5565", name="client", list_of_nodes=list_of_nodes1)
+    # client = PlexusUserApi(endpoint="tcp://10.9.0.1:5565", name="client", list_of_nodes=list_of_nodes1)
+    client = PlexusUserApi(endpoint="tcp://10.9.0.21:5565", name="client", list_of_nodes=list_of_nodes1)
 
     while True:
         # 1
@@ -54,6 +57,9 @@ if __name__ == '__main__':
 
         user_node = input("select node: ")
         print("your input: {}".format(user_node))
+
+        client.get_full_node_info(user_node)
+        print("++++++++++++++++++++++++++++++ ogogogogogogogogo ++++++++++++++++++++++++++++++++")
 
         # now we have to get info about this node to show it to user
         info_message = Message(

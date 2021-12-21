@@ -6,7 +6,7 @@ import os, sys
 # custom path imports
 try:
     from nodes.node2 import BaseNode, PeriodicCallback, Message
-    from utils.console_client import PlexusUserApi
+    from utils.console_client_api import PlexusUserApi
     # from nodes.broker import BrokerNode
     from devices.rpi_gpio_relay_device import RpiGpioRelayDevice
     from devices.bmp180_device import BMP180Sensor

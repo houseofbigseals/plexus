@@ -8,7 +8,7 @@ import time
 # custom path imports
 try:
     from nodes.node2 import BaseNode, PeriodicCallback, Message
-    from utils.console_client import PlexusUserApi
+    from utils.console_client_api import PlexusUserApi
     # from nodes.broker import BrokerNode
     from devices.numlock_device import NumLockDevice
 except Exception:
