@@ -55,6 +55,7 @@ class PlexusUserApi:
         # self.main_stream.on_recv_stream(self.reqv_callback)
         self.network_state = dict()
         self._sockets = dict()
+        self.refresh_time = 10 # secs
 
         # then lets create lots of sockets for all other nodes from given list
         for n in self.list_of_nodes:
@@ -62,7 +63,7 @@ class PlexusUserApi:
                 # create router socket and append it to self._sockets
                 new_socket = self.context.socket(zmq.ROUTER)
                 new_socket.identity = "{}".format(self.name).encode('ascii')
-                self.logger("{}".format(n["name"]).encode('ascii'))
+                # self.logger("{}".format(n["name"]).encode('ascii'))
                 new_socket.connect(n["address"])
 
                 # new_stream = ZMQStream(new_socket)
@@ -83,7 +84,7 @@ class PlexusUserApi:
                                             "address": n["address"],
                                             "status": "not_started"}
 
-                self.logger(self._sockets[n["name"]])
+                # self.logger(self._sockets[n["name"]])
         time.sleep(1)  # without that pause all stuff crushes
 
 
@@ -98,12 +99,16 @@ class PlexusUserApi:
         # find correct socket
         self.logger("try to send msg {} to {}".format(msg_to_send.msg_dict, msg_to_send.addr))
         sock = self._sockets[msg_to_send.addr]["socket"]
-        self.logger(sock)
+        # self.logger(sock)
         msg = msg_to_send.create_zmq_msg()
-        self.logger(msg)
-        sd = sock.send_multipart(msg ) #, flags=zmq.NOBLOCK)
-        self.logger("msg sent, lets wait for resp")
-        answer = sock.recv_multipart()#flags=zmq.NOBLOCK)
+        # self.logger(msg)
+        try: # TODO check this
+            sock.send_multipart(msg ) #, flags=zmq.NOBLOCK)
+            self.logger("msg sent, lets wait for resp")
+            answer = sock.recv_multipart()#flags=zmq.NOBLOCK)
+        except Exception as e:
+            self.logger("problem with sending message: {}".format(e))
+            answer = None
         # self.logger(answer)
         return answer
 
@@ -111,20 +116,20 @@ class PlexusUserApi:
     # =================================================================================================
     # messaging primitive wrappers
 
-    def get_all_nodes_info(self):
-        """
-        returns list of all nodes from config with their addr and state
-        :return:
-        """
-        self.logger("self network state: {}".format(self.network_state))
-        return self.network_state
+    # def get_all_nodes_info(self):
+    #     """
+    #     returns list of all nodes from config with their addr and state
+    #     :return:
+    #     """
+    #     self.logger("self network state: {}".format(self.network_state))
+    #     return self.network_state
 
     def get_full_node_info(self, nodename: str):
         """
         returns info about node with list of custom node commands and list of all devices and their state
         :return:
         """
-        # self.logger("get_full_node_info starts")
+        self.logger("get_full_node_info starts")
         info_message = Message(
             addr=str(nodename),
             device=str(nodename),
@@ -135,13 +140,29 @@ class PlexusUserApi:
         res = self.send_msg(info_message)
         addr_decoded_, decoded_resp_ = Message.parse_zmq_msg(res)
         self.logger("we got resp from node: {}".format(nodename))
-        for i in decoded_resp_:
-            self.logger((i, type(i)))
+        # for i in decoded_resp_:
+        #     self.logger((i, type(i)))
         # all_answer = decoded_resp_["data"]
 
-        self.logger("{} - {}".format("device", decoded_resp_["device"]))
-        self.logger("{} - {}".format("command", decoded_resp_["command"]))
-        # self.logger("get_full_node_info ends")
+        # self.logger("{} - {}".format("device", decoded_resp_["device"]))
+        # self.logger("{} - {}".format("command", decoded_resp_["command"]))
+
+
+        # add this info and its time to network state list
+        if nodename in self.network_state.keys():
+            # update information
+            self.network_state[nodename]["info"] = decoded_resp_['data']
+            self.network_state[nodename]["last_info_received"] = time.time()
+            self.network_state[nodename]["last_msg_received"] = time.time()
+        else:
+            # we can add node to our list
+            self.network_state[nodename] = {"address": None,
+                                                 "status": "new",
+                                                 "last_msg_sent": None,
+                                                 "last_msg_received": time.time(),
+                                                 "info": decoded_resp_['data'],
+                                                 "last_info_received": time.time()}
+        self.logger("get_full_node_info ends")
         return addr_decoded_, decoded_resp_
 
     def get_full_device_info(self, nodename, devname):
@@ -149,7 +170,37 @@ class PlexusUserApi:
         returns info about selected device with its commands and correspond params
         :return:
         """
-        pass
+        self.logger("get_full_device_info starts")
+        # find node in network list
+        if nodename in self.network_state.keys():
+            # lets check if info is actual
+            if time.time() - self.network_state[nodename]["last_info_received"] < self.refresh_time:
+                # lets use this data
+                data = self.network_state[nodename]["info"]
+
+                if devname in data["devices"]:
+                    # this is request for existing device
+                    self.logger("get_full_device_info ends cool")
+                    return data["devices"][devname]
+
+                elif devname == nodename:
+                    # this is request for system commands
+                    self.logger("get_full_device_info ends cool with system commands")
+                    return data["system_commands"]
+                else:
+                    self.logger("get_full_device_info ends with error because no such device")
+                    return None
+            else:
+                # refresh and do this again
+                self.get_full_node_info(nodename)
+                # and recursively run this method again
+                self.logger("get_full_device_info ends with updating info end recursively runs itself")
+                self.get_full_device_info(nodename, devname)
+
+        else:
+            self.logger("get_full_device_info ends wit error because no such node")
+            return None
+
 
     # ===========================================================================================================
     # user args parser and other utils to make messaging more simple
@@ -177,10 +228,11 @@ if __name__ == "__main__":
         # {"name": "node2", "address": "tcp://192.168.100.8:5567"},
         # {"name": "node3", "address": "tcp://192.168.100.8:5568"}
     ]
-    user_api = PlexusUserApi(endpoint="tcp://10.9.0.21:5565", name="client", list_of_nodes=list_of_nodes1)
+    user_api = PlexusUserApi(endpoint="tcp://10.9.0.1:5565", name="client", list_of_nodes=list_of_nodes1)
 
-    user_api.get_full_node_info("node1")
+    print(user_api.get_full_node_info("node1"))
+    print(user_api.get_full_device_info("node1", "led"))
 
-    user_device = input("select device: ")
+    # user_device = input("select device: ")
 
 
