@@ -6,6 +6,7 @@ import time
 import zmq
 import argparse
 import uuid
+import json
 # from zmq.eventloop.ioloop import IOLoop, PeriodicCallback
 # from zmq.eventloop.zmqstream import ZMQStream
 # import datetime
@@ -205,15 +206,70 @@ class PlexusUserApi:
     # ===========================================================================================================
     # user args parser and other utils to make messaging more simple
 
-    def user_input_parse(self):
+    def user_input_parse(self, addr:str, node:str, device:str, command:str, raw_args:str):
         """
+
+        IMPORTANT NOTE:
+        raw_args value must be string like that:
+        '{"arg1":34, "arg2":"some_param", ...}'
+        so we can load it directly to dict from str
+
         simple method to parse and complete user commands from shell
-        it uses argparse to handle user input
-        and own send method to communicate with other nodes
+        it uses own send method to communicate with other nodes
+        return - prepared message
         """
+        if node not in self.network_state.keys():
+            # add it manually by addr and node name
+            # and create socket for it
+            try:
+                # create router socket and append it to self._sockets
+                new_socket = self.context.socket(zmq.ROUTER)
+                new_socket.identity = "{}".format(self.name).encode('ascii')
+                # self.logger("{}".format(n["name"]).encode('ascii'))
+                new_socket.connect(addr)
+
+                # lets create big dict for every node in list, with
+                self.network_state[node] = {"address": addr,
+                                            "status": "unknown",
+                                            "last_msg_sent": None,
+                                            "last_msg_received": None,
+                                            "info": None,
+                                            "last_info_received": None}
+
+                self.logger("self network state updated: \n{}".format(self.network_state))
+
+                # for now we will keep socket instance,  stream instance, last_time, and status
+                self._sockets[node] = {"socket": new_socket,
+                                            "address": addr,
+                                            "status": "not_started"}
 
 
+                # and create message object from that data
+                msg_to_send = Message(
+                    addr=node,
+                    device=device,
+                    command=command,
+                    msg_id=uuid.uuid4().hex,
+                    time_=time.time(),
+                    data=json.loads(raw_args)
+                )
+                return msg_to_send
 
+
+            except Exception as e:
+                self.logger("Parsing error: \n{}".format(e))
+                return "Parsing error: \n{}".format(e)
+        else:
+            # just create msg
+            msg_to_send = Message(
+                addr=node,
+                device=device,
+                command=command,
+                msg_id=uuid.uuid4().hex,
+                time_=time.time(),
+                data=json.loads(raw_args)
+            )
+            return msg_to_send
 
 
 if __name__ == "__main__":
