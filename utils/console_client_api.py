@@ -56,7 +56,7 @@ class PlexusUserApi:
         # self.main_stream.on_recv_stream(self.reqv_callback)
         self.network_state = dict()
         self._sockets = dict()
-        self.refresh_time = 10 # secs
+        self.refresh_time = 10  # secs
 
         # then lets create lots of sockets for all other nodes from given list
         for n in self.list_of_nodes:

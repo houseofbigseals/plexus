@@ -30,6 +30,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Plexus console client", epilog="And that's how you'd foo a bar")
 
     parser.add_argument("action", type=str, choices=["send", "list", "info"], help="name of action ")
+
+    parser.add_argument("addr", type=str, help="in format: tcp://10.9.0.23:5566")
     parser.add_argument("node", type=str, help="name of node")
     parser.add_argument("device", type=str, help="name of device")
     parser.add_argument("command", type=str, help="name of command")
@@ -42,19 +44,29 @@ if __name__ == '__main__':
         {"name": "node1", "address": "tcp://10.9.0.23:5566"}
         ]
 
-    client = PlexusUserApi(endpoint="tcp://10.9.0.21:5565", name="client", list_of_nodes=list_of_nodes1)
+    client = PlexusUserApi(endpoint="tcp://10.9.0.1:5565", name="client", list_of_nodes=list_of_nodes1)
 
     # start user input parsing
 
-    if args.action == "send":
-        client.user_input_parse()
+    if args.action == "send": #and :
+        msg_to_send = client.user_input_parse(
+            addr=args.addr,
+            node=args.node,
+            device=args.device,
+            command=args.command,
+            raw_args=args.args
+        )
 
+        res = client.send_msg(msg_to_send)
+        addr_decoded_, decoded_resp_ = Message.parse_zmq_msg(res)
+        for k in decoded_resp_.keys():
+            client.logger("{} - {}".format(k, decoded_resp_[k]))
 
-    print("==============================================================\navailable nodes are:")
-    for n in list_of_nodes1:
-        print(n)
-
-
-        print("++++++++++++++++++++++++++++++ ogogogogogogogogo ++++++++++++++++++++++++++++++++")
-        client.get_full_node_info(args.node)
-        print("++++++++++++++++++++++++++++++ ogogogogogogogogo ++++++++++++++++++++++++++++++++")
+    print("=================================================================================")
+    # for n in list_of_nodes1:
+    #     print(n)
+    #
+    #
+    #     print("++++++++++++++++++++++++++++++ ogogogogogogogogo ++++++++++++++++++++++++++++++++")
+    #     client.get_full_node_info(args.node)
+    #     print("++++++++++++++++++++++++++++++ ogogogogogogogogo ++++++++++++++++++++++++++++++++")
