@@ -174,7 +174,7 @@ if __name__ == '__main__':
         raw_info = decoded_resp_["data"]["devices"]
         print(" ")
         print("name: {}".format(decoded_resp_["data"]["name"]))
-        print("info: {}".format(decoded_resp_["data"]["info"]))
+        print("info: {}".format(decoded_resp_["data"]["annotation"]))
         print("status: {}".format(decoded_resp_["data"]["status"]))
         print(" ")
         print("List of devices:\n")
@@ -188,7 +188,7 @@ if __name__ == '__main__':
          # = decoded_resp_
         print(f"{args['device']} device info:\n")
         print(f"\tname: {raw_info['name']}")
-        print(f"\tinfo: {raw_info['info']}")
+        print(f"\tinfo: {raw_info['annotation']}")
         print(f"\tstatus: {raw_info['status']}")
 
         print(f"\nAvailable commands for {raw_info['name']} device:\n")
