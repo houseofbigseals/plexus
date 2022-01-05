@@ -36,7 +36,7 @@ class Command:
 
 
 if __name__ == "__main__":
-    c = CommandRepr("ramambar", input_kwargs={"x": "int"}, annotation="stupid method")
+    c = Command("ramambar", input_kwargs={"x": "int"}, annotation="stupid method")
     print(type(c))
     print(c)
     print(c.__repr__())

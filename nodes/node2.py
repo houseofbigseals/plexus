@@ -205,7 +205,7 @@ class BaseNode(ABC, Process):
 
         image_ = {
             "name": self.name,
-            "info": self._annotation,
+            "annotation": self._annotation,
             "status": self._status,
             "devices": device_images,
             "system_commands": system_command_images  #,

@@ -175,7 +175,8 @@ class PlexusUserApi:
         # find node in network list
         if nodename in self.network_state.keys():
             # lets check if info is actual
-            if time.time() - self.network_state[nodename]["last_info_received"] < self.refresh_time:
+            if self.network_state[nodename]["last_info_received"] and\
+                    time.time() - self.network_state[nodename]["last_info_received"] < self.refresh_time:
                 # lets use this data
                 data = self.network_state[nodename]["info"]
 
@@ -196,7 +197,7 @@ class PlexusUserApi:
                 self.get_full_node_info(nodename)
                 # and recursively run this method again
                 self.logger("get_full_device_info ends with updating info end recursively runs itself")
-                self.get_full_device_info(nodename, devname)
+                return self.get_full_device_info(nodename, devname)
 
         else:
             self.logger("get_full_device_info ends wit error because no such node")

@@ -104,7 +104,7 @@ class BaseDevice(ABC):
 
         image_ = {
             "name": self.name,
-            "info": self._annotation,
+            "annotation": self._annotation,
             "status": self._status,
             "commands": command_images
         }
