@@ -55,10 +55,11 @@ class SI7021(BaseDevice):
 
     def device_commands_handler(self, command, **kwargs):
         if command == "get_state":
-            print("command == 'get_state'")
+            print("command == '{}'".format(command))
             return self._status
 
         if command == "get_temp":
+            print("command == '{}'".format(command))
             try:
                 cels_temp, humidity = get_si7021_data()
                 self._status = "works"
@@ -68,6 +69,7 @@ class SI7021(BaseDevice):
                 return e
 
         if command == "get_hum":
+            print("command == '{}'".format(command))
             try:
                 cels_temp, humidity = get_si7021_data()
                 self._status = "works"
@@ -78,6 +80,7 @@ class SI7021(BaseDevice):
 
         if command == "get_temp_and_hum":
             try:
+                print("command == '{}'".format(command))
                 cels_temp, humidity = get_si7021_data()
                 self._status = "works"
                 return cels_temp, humidity
@@ -90,9 +93,9 @@ if __name__ == "__main__":
     print(c.call("info"))
     print(c.call("get_state"))
     while True:
-        print(c.call("get_temperature"))
+        print(c.call("get_temp"))
         time.sleep(1)
-        print(c.call("get_temp_and_press"))
+        print(c.call("get_hum"))
         time.sleep(1)
         print(c.call("get_state"))
         time.sleep(1)
