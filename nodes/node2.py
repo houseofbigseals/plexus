@@ -367,7 +367,7 @@ class BaseNode(ABC, Process):
 
     def on_ping_timer(self):
         # method to ping other sockets
-        self.logger("try to send ping")
+        # self.logger("try to send ping")
         for s in self._sockets.keys():
 
             ping_msg = Message(

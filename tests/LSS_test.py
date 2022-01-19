@@ -122,14 +122,21 @@ class LSSNode(BaseNode):
 
     def custom_preparation(self):
         self.logger("custom init")
+
+        self.system_stage_flag = "waiting for the end of co2 measuring period"
+
+
         self.system_timer = PeriodicCallback(self.on_system_timer, self.time_quant)  # ms
         self.system_timer.start()
         self.logger("shut off all relays")
-        for ch in self._devices:
+        for ch in [self.n2_valve, self.vent_pump_3, self.vent_pump_4, self.coolers_12v,
+                    self.air_valve_2, self.air_valve_3, self.ch7, self.ch8]:
             ch.call("on")  # because they are inverted
 
+
+
     def on_system_timer(self):
-        t = datetime.datetime.now().time()
+        # t = datetime.datetime.now().time()
 
         if self.sleep_timer_delay > 0:
             # it means that we have to wait some more time
@@ -188,7 +195,20 @@ class LSSNode(BaseNode):
             elif self.system_stage_flag == "waiting for the end of co2 measuring period":
                 # time to configure delay for new search point
                 self.logger("it is time to set new search point")
+
+                self.system_stage_flag = "waiting for the end of co2 measuring period"
                 self.logger(datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S"))
+                # here we want to wait for new round date like 18.05 or 21.10
+                # we dont want to calculate it, so we will not change flag until
+                # this time have come
+                tn = datetime.datetime.now()
+                if tn.time().minute % 5 == 0 and tn.time().second == 0:
+                    self.system_stage_flag = "waiting for start"
+                    self.logger(datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S"))
+                    self.logger("the time for new step has come")
+                else:
+                    self.sleep_timer_delay = 100
+
 
 if __name__ == "__main__":
     list_of_nodes1 = [
