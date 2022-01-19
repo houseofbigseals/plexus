@@ -100,7 +100,7 @@ if __name__ == '__main__':
         except Exception as e:
             print("Incorrect input. Try -h option")
             # print("incorrect input : {}".format(e))
-            
+
     list_of_nodes1 = [
         {"name": "node1", "address": "tcp://10.9.0.23:5566"}
         ]

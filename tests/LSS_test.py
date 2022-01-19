@@ -194,10 +194,10 @@ class LSSNode(BaseNode):
 
             elif self.system_stage_flag == "waiting for the end of co2 measuring period":
                 # time to configure delay for new search point
-                self.logger("it is time to set new search point")
+                # self.logger("it is time to set new search point")
 
                 self.system_stage_flag = "waiting for the end of co2 measuring period"
-                self.logger(datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S"))
+                # self.logger(datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S"))
                 # here we want to wait for new round date like 18.05 or 21.10
                 # we dont want to calculate it, so we will not change flag until
                 # this time have come
