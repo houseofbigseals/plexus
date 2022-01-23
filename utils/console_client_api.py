@@ -97,9 +97,23 @@ class PlexusUserApi:
 
         :return:
         """
-        # find correct socket
+        # find correct socket if it exists in self sockets table
         self.logger("try to send msg {} to {}".format(msg_to_send.msg_dict, msg_to_send.addr))
-        sock = self._sockets[msg_to_send.addr]["socket"]
+        if msg_to_send.addr in self._sockets.keys():
+            sock = self._sockets[msg_to_send.addr]["socket"]
+        else:
+            # it means that we have not such node in sockets table and we have to add it manually
+            # TODO: for nao just raise error
+            raise ConnectionError("no such node in self nodes list!")
+            # # create router socket and append it to self._sockets
+            # new_socket = self.context.socket(zmq.ROUTER)
+            # new_socket.identity = "{}".format(self.name).encode('ascii')
+            # # self.logger("{}".format(n["name"]).encode('ascii'))
+            # new_socket.connect(n["address"])
+            #
+            # self._sockets[n["name"]] = {"socket": new_socket,
+            #                             "address": n["address"],
+            #                             "status": "not_started"}
         # self.logger(sock)
         msg = msg_to_send.create_zmq_msg()
         # self.logger(msg)

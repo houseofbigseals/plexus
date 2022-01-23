@@ -102,13 +102,17 @@ if __name__ == '__main__':
             # print("incorrect input : {}".format(e))
 
     list_of_nodes1 = [
-        {"name": "node1", "address": "tcp://10.9.0.23:5566"}
+        # {"name": "node1", "address": "tcp://10.9.0.23:5566"}
+        # {"name": "node1", "address": "tcp://10.9.0.23:5566"}
+        {"name": "node1", "address": "tcp://127.0.0.1:5566"}
         ]
 
     print(args)
     # args = parser.parse_args()
     # client_addr = "tcp://10.9.0.21:5565"
-    client_addr = "tcp://10.9.0.21:5565"
+    # client_addr = "tcp://10.9.0.1:5565"
+    # client_addr = "tcp://192.168.100.5:5565"
+    client_addr = "tcp://127.0.0.1:5555"
 
     if flag == "send":
         client = PlexusUserApi(endpoint=client_addr, name="client", list_of_nodes=list_of_nodes1)
@@ -153,50 +157,78 @@ if __name__ == '__main__':
         client = PlexusUserApi(endpoint=client_addr, name="client", list_of_nodes=list_of_nodes1)
         raw_info = client.get_full_device_info(args["node"], args["device"])
          # = decoded_resp_
-        print(f"{args['device']} device info:\n")
-        print(f"\tname: {raw_info['name']}")
-        print(f"\tinfo: {raw_info['annotation']}")
-        print(f"\tstatus: {raw_info['status']}")
+        if args["node"] != args["device"]:
+            print(f"{args['device']} device info:\n")
+            print(f"\tname: {raw_info['name']}")
+            print(f"\tinfo: {raw_info['annotation']}")
+            print(f"\tstatus: {raw_info['status']}")
 
-        print(f"\nAvailable commands for {raw_info['name']} device:\n")
-        for c in raw_info["commands"].keys():
-            # print(f"\t{c} : {raw_info['commands'][c]}")
-            print(f"\t{c} : {raw_info['commands'][c]['annotation']}")
-        print(" ")
+            print(f"\nAvailable commands for {raw_info['name']} device:\n")
+            for c in raw_info["commands"].keys():
+                # print(f"\t{c} : {raw_info['commands'][c]}")
+                print(f"\t{c} : {raw_info['commands'][c]['annotation']}")
+            print(" ")
+        else:
+            print(f"{args['device']} system commands info:\n")
+            for c in raw_info.keys():
+                # print(f"\t{c} : {raw_info['commands'][c]}")
+                print(f"\t{c} : {raw_info[c]['annotation']}")
+            print(" ")
         # print(client.get_full_device_info(args["node"], args["device"]))
 
 
     elif flag == "command_info":
         client = PlexusUserApi(endpoint=client_addr, name="client", list_of_nodes=list_of_nodes1)
         raw_info = client.get_full_device_info(args["node"], args["device"])
-        print(raw_info)
-        data = raw_info['commands'][args['command']]
-        print(data)
-        print(args)
-        # [args['command']]
+        if args["node"] != args["device"]:
+            print(raw_info)
+            data = raw_info['commands'][args['command']]
+            print(data)
+            print(args)
+            # [args['command']]
 
-        print(f"\n{args['command']} command info:\n")
-        print(f"\tname: {data['name']}")
-        print(f"\tinfo: {data['annotation']}")
-        # print(f"\tstatus: {data['status']}")
-        print(f"\nAvailable input args for {args['command']} command:\n")
+            print(f"\n{args['command']} command info:\n")
+            print(f"\tname: {data['name']}")
+            print(f"\tinfo: {data['annotation']}")
+            # print(f"\tstatus: {data['status']}")
+            print(f"\nAvailable input args for {args['command']} command:\n")
 
-        if data['input_kwargs']:
-            for a in data['input_kwargs'].items():
-                print(f"\t{a}")
+            if data['input_kwargs']:
+                for a in data['input_kwargs'].items():
+                    print(f"\t{a}")
+            else:
+                print("\tno input kwargs")
+            print(f"\nAvailable output args for {args['command']} command:\n")
+
+            if data['output_kwargs']:
+                for a in data['output_kwargs'].items():
+                    print(f"\t{a}")
+            else:
+                print("\tno output kwargs")
 
         else:
-            print("\tno input kwargs")
+            print(f"{args['device']} system commands info:\n")
+            print(f"\n{args['command']} command info:\n")
 
-        print(f"\nAvailable output args for {args['command']} command:\n")
+            data = raw_info[args['command']]
+            
+            print(f"\tname: {data['name']}")
+            print(f"\tinfo: {data['annotation']}")
+            # print(f"\tstatus: {data['status']}")
+            print(f"\nAvailable input args for {args['command']} command:\n")
 
-        if data['output_kwargs']:
-            for a in data['output_kwargs'].items():
-                print(f"\t{a}")
+            if data['input_kwargs']:
+                for a in data['input_kwargs'].items():
+                    print(f"\t{a}")
+            else:
+                print("\tno input kwargs")
+            print(f"\nAvailable output args for {args['command']} command:\n")
 
-        else:
-            print("\tno output kwargs")
-
+            if data['output_kwargs']:
+                for a in data['output_kwargs'].items():
+                    print(f"\t{a}")
+            else:
+                print("\tno output kwargs")
 
         # print(info[args["command"]])
 

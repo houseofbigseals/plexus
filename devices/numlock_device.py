@@ -6,11 +6,14 @@ import subprocess
 import time, sys, os
 try:
     from devices.base_device import BaseDevice
+    from nodes.command import Command
 except ModuleNotFoundError:
     # here we trying to manually add our lib path to python path
     abspath = os.path.abspath("..")
     sys.path.insert(0, "{}/devices".format(abspath))
+    sys.path.insert(0, "{}/nodes".format(abspath))
     from base_device import BaseDevice
+    from command import Command
 
 
 class NumLockDevice(BaseDevice):
@@ -22,7 +25,20 @@ class NumLockDevice(BaseDevice):
         # manually add here important variables and commands
         self.led_state = None
         self._description = "this is simple test device to control NumLock led state on Ubuntu"
-        self._available_commands.extend(["get_state", "set_state"])
+
+        get_state_command = Command(
+            name="get_state",
+            annotation="get state",
+            output_kwargs={"led_state": "bool"}
+        )
+
+        set_state_command = Command(
+            name="set_state",
+            annotation="set_state",
+            output_kwargs={"ack_str": "str"}
+        )
+
+        self._available_commands.extend([set_state_command, get_state_command])
 
     # now we have to write handlers for start, stop and kill and other methods
     def device_commands_handler(self, command, **kwargs):

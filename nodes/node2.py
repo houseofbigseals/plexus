@@ -128,12 +128,12 @@ class BaseNode(ABC, Process):
         #     output_kwargs={"ack_str": "str"}
         # )
         #
-        # kill_command = Command(
-        #     name="kill",
-        #     annotation="command to fully stop work of device",
-        #     output_kwargs={"ack_str": "str"}
-        # )
-        self.system_commands = [info_command, ping_command]
+        kill_command = Command(
+            name="kill",
+            annotation="command to fully stop work of this process",
+            output_kwargs={"ack_str": "str"}
+        )
+        self.system_commands = [info_command, ping_command, kill_command]
 
     # ========= tech methods, those must not be redefined by user ==========
 
@@ -178,6 +178,7 @@ class BaseNode(ABC, Process):
                 self.logger(self._sockets[n["name"]])
 
         self.ping_timer = PeriodicCallback(self.on_ping_timer, self.ping_period)
+        #self.death_timer = PeriodicCallback(self.on_death_timer, self.ping_period)
 
         # preparations by user like creating PeriodicalCallbacks
         self.custom_preparation()
@@ -200,7 +201,12 @@ class BaseNode(ABC, Process):
         # self.logger("device images: {}".format(device_images))
         # custom_command_images = {d.name: d.get_image() for d in self.custom_commands}
         # self.logger("custom_command_images: {}".format(custom_command_images))
-        system_command_images = {d.name: d.get_image() for d in self.system_commands}
+
+
+        # also lets add node`s itself methods, those can be requested by
+        # setting device name same as node name
+
+        system_command_images = {c.name: c.get_image() for c in self.system_commands}
         # self.logger("system_command_images: {}".format(system_command_images))
 
         image_ = {
@@ -358,8 +364,36 @@ class BaseNode(ABC, Process):
             )
             self.send(stream, res_msg)
             # we have to send resp with standard info about this node and its devices
+
+        elif reqv_msg.command == "kill":
+            # it means that it it reqv to us and we must answer
+            # in answer we need to send all info about node and its devices
+            self.logger("command ping received")
+            res_msg = Message(
+                addr=reqv_msg.addr,
+                device=reqv_msg.device,
+                command="resp",
+                msg_id=reqv_msg.msg_id,
+                time_=time.time(),
+                data="ack"
+            )
+            self.send(stream, res_msg)
+            # then kill itself
+            self.suicide()
+
         else:
             self.handle_custom_system_msgs(stream, reqv_msg)
+
+    def suicide(self):
+        """ command to kill node """
+        # self.loop.stop()
+        self.logger("{} will be killed right now".format(self.name))
+        self.ping_timer.stop()
+        # while self.ping_timer.is_running():
+        #     time.sleep(0.1)
+        self.logger("ping timer is running: {}".format(self.ping_timer.is_running()))
+        self.loop.stop()
+        self.loop.close()
 
     def handle_custom_system_msgs(self, stream, reqv_msg: Message):
         """ user can handle here any custom commands for his custom node"""

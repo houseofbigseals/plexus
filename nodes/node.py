@@ -80,6 +80,7 @@ class BaseNode(ABC, Process):
         :param is_daemon:
         """
         Process.__init__(self, daemon=is_daemon)
+        self._kill_flag = False
         self.name = name
         self.logger = PrintLogger(self.name)
         self.logger("start init")
@@ -224,6 +225,8 @@ class BaseNode(ABC, Process):
         #TODO add this feature to broker too
         # self.logger("try to send ping")
         self.send(self._broker, self._broker, "PING", uuid.uuid1(), b'')
+
+
 
     def store_awaiting_msg(self, msg: Any):
         # TODO

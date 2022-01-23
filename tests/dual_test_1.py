@@ -56,6 +56,7 @@ class TestLedNode(BaseNode):
         self.led_timer.start()
 
     def on_led_timer(self):
+        self.logger("timeer alive!")
         pass
 
         # res = self._led_device.call("get_state")
@@ -80,7 +81,9 @@ class TestLedNode(BaseNode):
 if __name__ == '__main__':
     list_of_nodes1 = [
         # {"name": "node1", "address": "tcp://192.168.100.4:5566"},
-        {"name": "node1", "address": "tcp://10.9.0.23:5566"},
+        #{"name": "node1", "address": "tcp://192.168.100.5:5566"}
+        {"name": "node1", "address": "tcp://127.0.0.1:5566"}
+        # {"name": "node1", "address": "tcp://10.9.0.23:5566"},
         # {"name": "node2", "address": "tcp://192.168.100.8:5567"},
         # {"name": "node3", "address": "tcp://192.168.100.8:5568"}
     ]
