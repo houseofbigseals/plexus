@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 
@@ -16,6 +16,7 @@ import logging
 logging.basicConfig(filename='sba_5_driver.log',
                     format='%(asctime)s;%(levelname)s;%(message)s',
                     level=logging.DEBUG)
+
 
 class SBAWrapper(object):
     """
@@ -183,7 +184,26 @@ def test_info():
         print(ans)
         # sleep()
 
+
+def new_test():
+    s = SBAWrapper()
+    res = s.send_command('?\r\n')
+    print(res)
+    ser = serial.Serial(
+        port="/dev/serial/by-id/usb-FTDI_FT230X_Basic_UART_DN03WQZS-if00-port0",
+        baudrate=19200,
+        timeout=1)
+    while True:
+        ans = (ser.readline()).decode('utf-8')
+        print(ans)
+    # co2 = s.send_command('M\r\n')
+    # print(co2)
+    # pump_off = s.send_command('P0\r\n')
+    # print(pump_off)
+
+
 if __name__=="__main__":
-    read_loop()
+    new_test()
+    # read_loop()
     #test_calibration()
     #test_info()
