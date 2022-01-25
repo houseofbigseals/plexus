@@ -211,11 +211,113 @@
 # /dev/serial/by-id/usb-FTDI_FT230X_Basic_UART_DN03WQZS-if00-port0
 
 
-class SBA5DeviceException(Exception):
-    pass
-
 # Command must ends with \r\n !
 # Its important
 
 
+import time, sys, os
+try:
+    from devices.base_device import BaseDevice
+    from low_level_drivers.led_uart_driver import UartWrapper
+    from nodes.command import Command
+except ModuleNotFoundError:
+    # here we trying to manually add our lib path to python path
+    abspath = os.path.abspath("..")
+    sys.path.insert(0, "{}/devices".format(abspath))
+    sys.path.insert(0, "{}/low_level_drivers".format(abspath))
+    sys.path.insert(0, "{}/nodes".format(abspath))
+    from command import Command
+    from base_device import BaseDevice
+    from led_uart_driver import UartWrapper
+
+
 #  use \r\n !
+
+
+class SBA5Device(BaseDevice):
+    """
+    hah
+    """
+
+    def __init__(self):
+        pass
+
+    def prepare_sba(self):
+        ans_ = ""
+        # we need to shut down auto measurements
+        ans = self.send_command("!\r\n")
+        ans_ += ans
+        self._logger.debug("Command !, answer: {}".format(ans)[:-1])
+        # we need to shut down auto zero operations
+        ans += self.send_command("A0\r\n")
+        ans_ += ans
+        self._logger.debug("Command A0, answer: {}".format(ans)[:-1])
+        # we need to set format of output
+        ans += self.send_command("F252\r\n")
+        ans_ += ans
+        self._logger.debug("Command F252, answer: {}".format(ans)[:-1])
+        # we need to start pump
+        ans += self.send_command("P1\r\n")
+        ans_ += ans
+        self._logger.debug("Command P1, answer: {}".format(ans)[:-1])
+        # set time of calibration
+        if self._calibration_time == 90:
+            command = "EL\r\n"
+        elif self._calibration_time == 40:
+            command = "EM\r\n"
+        elif self._calibration_time == 21:
+            command = "ES\r\n"
+        else:
+            self._logger.error("wrong initial calibration time, {}".format(self._calibration_time))
+            self._logger.error("default time will be 90 sec")
+            command = "EL\r\n"
+
+        ans += self.send_command(command)
+        ans_ += ans
+        self._logger.debug("Command calibraton, answer: {}".format(ans)[:-1])
+        return ans_
+
+    def send_command(self, command):
+        """
+        Command must ends with \r\n !
+        Its important
+        :param command:
+        :return:
+        """
+        """
+        To initiate a command, the USB port or RS232 port sends an ASCII character or string.
+        A single character command is acted on immediately when the character is received.
+        A string command is acted on after the command string terminator <CR> is received. 
+        The command can be sent with or without a checksum. If a checksum is sent, a “C” follows 
+        the checksum value.
+        For example,
+        Device sends command without checksum: S,11,1<CR>
+        Device sends command with checksum: S,11,1,043C<CR>
+        On successfully receiving a command string, the SBA5+ sends an acknowledgement by 
+        echoing back to all the ports the Command String and “OK”, each terminated with a <CR> 
+        and<linefeed>.
+        """
+        # \r\n
+        try:
+            ser = serial.Serial(
+                port=self._port,
+                baudrate=self._baudrate,
+                timeout=self._timeout
+            )
+            bcom = command.encode('utf-8')
+            ser.write(bcom)
+
+        except Exception as e:
+            raise SBA5DeviceException("SBAWrapper error while send command: {}".format(e))
+            # self._logger.error("SBAWrapper error while send command: {}".format(e))
+        # then try to read answer
+        # it must be two messages, ended with \r\n
+        try:
+            ser = serial.Serial(
+                port=self._port,
+                baudrate=self._baudrate,
+                timeout=self._timeout
+            )
+            echo = (ser.readline()).decode('utf-8')
+            status = (ser.readline()).decode('utf-8')
+            return echo+status

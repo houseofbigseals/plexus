@@ -2,7 +2,7 @@
 # this is simple test device to control NumLock led state
 # as if it were a some important device like relay
 
-import subprocess
+
 import time, sys, os
 try:
     from devices.base_device import BaseDevice
