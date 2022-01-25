@@ -82,7 +82,7 @@ class LSSNode(BaseNode):
 
         self._devices.extend([
             self.n2_valve, self.vent_pump_5, self.vent_pump_6, self.coolers_12v,
-            self.air_valve_2, self.air_valve_3, self.ch7, self.ch8, self.bmp180,
+            self.air_valve_2, self.air_valve_3, self.bmp180,
             self.led, self.si7021
             ])
 
@@ -132,7 +132,7 @@ class LSSNode(BaseNode):
         self.system_timer.start()
         self.logger("shut off all relays")
         for ch in [self.n2_valve, self.vent_pump_5, self.vent_pump_6, self.coolers_12v,
-                    self.air_valve_2, self.air_valve_3, self.ch7, self.ch8]:
+                    self.air_valve_2, self.air_valve_3]:
             ch.call("on")  # because they are inverted
 
 
