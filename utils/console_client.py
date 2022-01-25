@@ -28,7 +28,7 @@ except Exception:
 def print_intro_help():
     return "Hello \nThis is a plexus console client. Version 0.0.1, GPLv3 license." \
            "\nThere are two commands: send and info.\n" \
-           "Print send -h or info -h for more information"
+           "Print same command with addition 'send -h' or 'info -h' for more information"
 
 def send_help():
     return "Sends command to selected node via ZMQ sockets and returns answer. \n" \
@@ -39,15 +39,15 @@ def send_help():
            "\tcommand: string with device name\n" \
            "\targs: args string must be like this: '{\"x\":12, \"y\":\"some_param\"}'\n\n" \
            "for example:\n" \
-           "tcp://10.9.0.23:5566 node_name device_name some_command '{\"x\":12, \"y\":\"some_param\"}' "
+           "10.9.0.23:5566 node_name device_name some_command '{\"x\":12, \"y\":\"some_param\"}' "
 
 def info_help():
     return "Returns info about selected address of remote machine, node, device or command\n" \
            "Different nodes can have similar device names, same with different remote machines,\n" \
            "so you have to clarify your request. For example, if you need info about specific node\ndo like this:\n" \
-           "\n\tinfo tcp://10.9.0.23:5566 node_name\n\n" \
+           "\n\tinfo 10.9.0.23:5566 node_name\n\n" \
            "And if you need info about specific command in specific device do like this:\n" \
-           "\n\tinfo tcp://10.9.0.23:5566 node_name device_name command_name\n\n"
+           "\n\tinfo 10.9.0.23:5566 node_name device_name command_name\n\n"
 
 if __name__ == '__main__':
     args = dict()
@@ -63,7 +63,7 @@ if __name__ == '__main__':
                     print(send_help())
                 else:
                     # for now no any checking of user input
-                    args["addr"] = sys.argv[2]
+                    args["addr"] = "tcp://" + sys.argv[2]
                     args["node"] = sys.argv[3]
                     args["device"] = sys.argv[4]
                     args["command"] = sys.argv[5]
@@ -76,22 +76,22 @@ if __name__ == '__main__':
                 else:
                     if len(sys.argv) == 3:
                         # it must be request for addr info
-                        args["addr"] = sys.argv[2]
+                        args["addr"] = "tcp://" + sys.argv[2]
                         flag = "addr_info"
                     if len(sys.argv) == 4:
                         # it must be request for node info
-                        args["addr"] = sys.argv[2]
+                        args["addr"] = "tcp://" + sys.argv[2]
                         args["node"] = sys.argv[3]
                         flag = "node_info"
                     if len(sys.argv) == 5:
                         # it must be request for node info
-                        args["addr"] = sys.argv[2]
+                        args["addr"] = "tcp://" + sys.argv[2]
                         args["node"] = sys.argv[3]
                         args["device"] = sys.argv[4]
                         flag = "device_info"
                     if len(sys.argv) == 6:
                         # it must be request for node info
-                        args["addr"] = sys.argv[2]
+                        args["addr"] = "tcp://" + sys.argv[2]
                         args["node"] = sys.argv[3]
                         args["device"] = sys.argv[4]
                         args["command"] = sys.argv[5]
@@ -211,7 +211,7 @@ if __name__ == '__main__':
             print(f"\n{args['command']} command info:\n")
 
             data = raw_info[args['command']]
-            
+
             print(f"\tname: {data['name']}")
             print(f"\tinfo: {data['annotation']}")
             # print(f"\tstatus: {data['status']}")

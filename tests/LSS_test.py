@@ -61,13 +61,15 @@ class LSSNode(BaseNode):
         super().__init__(endpoint, name, list_of_nodes, is_daemon)
         # init relays
         self.n2_valve = RpiGpioRelayDevice("n2_valve", 5)
-        self.vent_pump_3 = RpiGpioRelayDevice("vent_pump_3", 6)
-        self.vent_pump_4 = RpiGpioRelayDevice("vent_pump_4", 12)
+        # self.vent_pump_3 = RpiGpioRelayDevice("vent_pump_3", 6)
+        # self.vent_pump_4 = RpiGpioRelayDevice("vent_pump_4", 12)
         self.coolers_12v = RpiGpioRelayDevice("coolers_12v", 13)
         self.air_valve_2 = RpiGpioRelayDevice("air_valve_2", 19)
         self.air_valve_3 = RpiGpioRelayDevice("air_valve_3", 26)
-        self.ch7 = RpiGpioRelayDevice("ch7", 16)
-        self.ch8 = RpiGpioRelayDevice("ch8", 20)
+        self.vent_pump_5 = RpiGpioRelayDevice("vent_pump_5", 16)
+        self.vent_pump_6 = RpiGpioRelayDevice("vent_pump_6", 20)
+        # self.ch7 = RpiGpioRelayDevice("ch7", 16)
+        # self.ch8 = RpiGpioRelayDevice("ch8", 20)
 
         self.led = LedUartDevice(
             devname='/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0',
@@ -79,7 +81,7 @@ class LSSNode(BaseNode):
         self._annotation = "lss node for system tests"
 
         self._devices.extend([
-            self.n2_valve, self.vent_pump_3, self.vent_pump_4, self.coolers_12v,
+            self.n2_valve, self.vent_pump_5, self.vent_pump_6, self.coolers_12v,
             self.air_valve_2, self.air_valve_3, self.ch7, self.ch8, self.bmp180,
             self.led, self.si7021
             ])
@@ -129,7 +131,7 @@ class LSSNode(BaseNode):
         self.system_timer = PeriodicCallback(self.on_system_timer, self.time_quant)  # ms
         self.system_timer.start()
         self.logger("shut off all relays")
-        for ch in [self.n2_valve, self.vent_pump_3, self.vent_pump_4, self.coolers_12v,
+        for ch in [self.n2_valve, self.vent_pump_5, self.vent_pump_6, self.coolers_12v,
                     self.air_valve_2, self.air_valve_3, self.ch7, self.ch8]:
             ch.call("on")  # because they are inverted
 
@@ -163,8 +165,8 @@ class LSSNode(BaseNode):
                 # it means that  it is time to start air draining
                 # 4. start air pumps
                 self.logger("it is time to start air pumps")
-                self.vent_pump_3.call("off")
-                self.vent_pump_4.call("off")
+                self.vent_pump_5.call("off")
+                self.vent_pump_6.call("off")
 
                 # then start co2 sensor calibration
                 # in LSS mode - we dont need it
@@ -185,8 +187,8 @@ class LSSNode(BaseNode):
                 self.logger("it is time to stop air purge")
                 self.air_valve_2.call("on")
                 self.air_valve_3.call("on")
-                self.vent_pump_3.call("on")
-                self.vent_pump_4.call("on")
+                self.vent_pump_5.call("on")
+                self.vent_pump_6.call("on")
 
                 self.system_stage_flag = "waiting for the end of co2 measuring period"
                 self.sleep_timer_delay = 120000  # ms - 2 mins
