@@ -216,10 +216,13 @@
 
 
 import time, sys, os
+import serial
+import re
 try:
     from devices.base_device import BaseDevice
     from low_level_drivers.led_uart_driver import UartWrapper
     from nodes.command import Command
+    from utils.logger import PrintLogger
 except ModuleNotFoundError:
     # here we trying to manually add our lib path to python path
     abspath = os.path.abspath("..")
@@ -229,58 +232,147 @@ except ModuleNotFoundError:
     from command import Command
     from base_device import BaseDevice
     from led_uart_driver import UartWrapper
+    from logger import PrintLogger
 
 
 #  use \r\n !
-
+# https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&cad=rja&uact=8&ved=2ahUKEwif2t7y_8_1AhUQv4sKHTzXDtUQFnoECAcQAQ&url=http%3A%2F%2Fppsystems.com%2Fdownload%2Ftechnical_manuals%2F800811-SBA5_Operation_V106.pdf&usg=AOvVaw0Jnulv-lhRmgy8QMHlY1rL
+# https://www.manualslib.com/products/Pp-Systems-Sba-5-9048128.html
 
 class SBA5Device(BaseDevice):
     """
     hah
     """
 
-    def __init__(self):
-        pass
+    def __init__(self, name: str, calibration_time: int = 40,
+                 port: str = "/dev/serial/by-id/usb-FTDI_FT230X_Basic_UART_DN03WQZS-if00-port0",
+                 baudrate: int = 19200,
+                 timeout: float = 0.5
+                 ):
 
-    def prepare_sba(self):
-        ans_ = ""
-        # we need to shut down auto measurements
-        ans = self.send_command("!\r\n")
-        ans_ += ans
-        self._logger.debug("Command !, answer: {}".format(ans)[:-1])
-        # we need to shut down auto zero operations
-        ans += self.send_command("A0\r\n")
-        ans_ += ans
-        self._logger.debug("Command A0, answer: {}".format(ans)[:-1])
-        # we need to set format of output
-        ans += self.send_command("F252\r\n")
-        ans_ += ans
-        self._logger.debug("Command F252, answer: {}".format(ans)[:-1])
-        # we need to start pump
-        ans += self.send_command("P1\r\n")
-        ans_ += ans
-        self._logger.debug("Command P1, answer: {}".format(ans)[:-1])
-        # set time of calibration
-        if self._calibration_time == 90:
-            command = "EL\r\n"
-        elif self._calibration_time == 40:
-            command = "EM\r\n"
-        elif self._calibration_time == 21:
-            command = "ES\r\n"
-        else:
-            self._logger.error("wrong initial calibration time, {}".format(self._calibration_time))
-            self._logger.error("default time will be 90 sec")
-            command = "EL\r\n"
+        super().__init__(name)
+        self._logger = PrintLogger("SBA5Device")
+        self._calibration_time = calibration_time
+        self._port = port
+        self._baudrate = baudrate
+        self._timeout = timeout
+        self._annotation = "device for control SBA-5, CO2 IR-sensor. must be calibrated " \
+                           "with pure N2 or air, cleaned from H2O and CO2 somehow. " \
+                           "see documentation on official site" \
 
-        ans += self.send_command(command)
-        ans_ += ans
-        self._logger.debug("Command calibraton, answer: {}".format(ans)[:-1])
-        return ans_
 
+        reconfigure = Command(
+            name="reconfigure",
+            annotation="make configuration: start inner pump, "
+                       "stop automeasuring, stop autocalibration,"
+                       "set format of output string as 252 (see documentation)",
+            output_kwargs={"ack_str": "str"}
+        )
+        stop_air_pump = Command(
+            name="stop_air_pump",
+            annotation="stop inner air pump",
+            output_kwargs={"ack_str": "str"}
+        )
+
+        start_air_pump = Command(
+            name="start_air_pump",
+            annotation="start inner air pump",
+            output_kwargs={"ack_str": "str"}
+        )
+
+        get_co2 = Command(
+            name="get_co2",
+            annotation="get current CO2 concentration",
+            # input_kwargs={"current": "int"},
+            output_kwargs={"ack_str": "str"}
+        )
+
+        get_raw_measure = Command(
+            name="get_raw_measure",
+            annotation="get full request from device",
+            # input_kwargs={"current": "int"},
+            output_kwargs={"ack_str": "str"}
+        )
+        recalibrate = Command(
+            name="recalibrate",
+            annotation="start 40-secs calibration (need pure N2)",
+            # input_kwargs={"current": "int"},
+            output_kwargs={"ack_str": "str"}
+        )
+
+        self._available_commands.extend([reconfigure, stop_air_pump, start_air_pump, get_co2,
+                                         get_raw_measure, recalibrate])
+
+    # now we have to write handlers for start, stop and kill and other methods
+    def device_commands_handler(self, command, **kwargs):
+        if command == "reconfigure":
+            self._logger("command == 'reconfigure'")
+            try:
+                res = self.prepare_sba()
+                self._status = "work"
+                return "ack"+res
+            except Exception as e:
+                self._status = "error"
+                raise ConnectionError("ERROR {}".format(e))
+        if command == "start_air_pump":
+            try:
+                res = self.send_command('P1\r\n')
+                self._status = "work"
+                return "ack"+res
+            except Exception as e:
+                self._status = "error"
+                raise ConnectionError("ERROR {}".format(e))
+
+        if command == "stop_air_pump":
+            try:
+                res = self.send_command('P0\r\n')
+                self._status = "work"
+                return "ack"+res
+            except Exception as e:
+                self._status = "error"
+                raise ConnectionError("ERROR {}".format(e))
+
+        if command == "recalibrate":
+            try:
+                ans = self.send_command("Z\r\n")
+                self._logger("Starting calibration of SBA5")
+                self._status = "calibration"
+                return "ack"+ans
+            except Exception as e:
+                self._status = "error"
+                raise ConnectionError("ERROR {}".format(e))
+
+        if command == "get_raw_measure":
+            try:
+                ans = self.send_command("M\r\n")
+                self._logger("Do measure SBA5")
+                self._logger(("SBA5 result is {}".format(ans))[:-1])  # its try to remove last \n from here
+                return "ack"+ans
+            except Exception as e:
+                self._status = "error"
+                raise ConnectionError("ERROR {}".format(e))
+
+        if command == "get_co2":
+            self._logger("Do measure SBA5")
+            try:
+                ans = self.send_command("M\r\n")
+                self._logger("raw result from measure {}".format(ans))
+                self._logger(("SBA5 result is {}".format(ans))[:-1])  # its try to remove last \n from here
+                pattern = re.compile(r'M \d+ \d+ (\d+.\d+) \d+.\d+ \d+.\d+ \d+.\d+ \d+ \d+\r\n')
+                res = pattern.findall(ans)
+
+                self._logger("we have found this {}".format(res[0]))
+                resp = "ack" + str(res[0])
+                return resp
+
+            except Exception as e:
+                raise ConnectionError("ERROR {}".format(e))
+
+    # low-level command - send -------------------------------------------------------------
     def send_command(self, command):
         """
         Command must ends with \r\n !
-        Its important
+        It is important
         :param command:
         :return:
         """
@@ -308,8 +400,8 @@ class SBA5Device(BaseDevice):
             ser.write(bcom)
 
         except Exception as e:
-            raise SBA5DeviceException("SBAWrapper error while send command: {}".format(e))
-            # self._logger.error("SBAWrapper error while send command: {}".format(e))
+            # raise SBA5DeviceException("SBAWrapper error while send command: {}".format(e))
+            self._logger("Error while send command: {}".format(e))
         # then try to read answer
         # it must be two messages, ended with \r\n
         try:
@@ -321,3 +413,85 @@ class SBA5Device(BaseDevice):
             echo = (ser.readline()).decode('utf-8')
             status = (ser.readline()).decode('utf-8')
             return echo+status
+        except Exception as e:
+            # raise SBA5DeviceException("SBAWrapper error while send command: {}".format(e))
+            self._logger("Error while reading answer {}".format(e))
+
+    # high-level commands, based on send ------------------------------------------------------
+
+
+    def prepare_sba(self):
+        """ device preparation is specialized for experiments in IMBP """
+        ans_ = ""
+        # we need to shut down auto measurements
+        ans = self.send_command("!\r\n")
+        ans_ += ans
+        self._logger("Command !, answer: {}".format(ans)[:-1])
+        # we need to shut down auto zero operations
+        ans += self.send_command("A0\r\n")
+        ans_ += ans
+        self._logger("Command A0, answer: {}".format(ans)[:-1])
+        # we need to set format of output
+        ans += self.send_command("F252\r\n")
+        ans_ += ans
+        self._logger("Command F252, answer: {}".format(ans)[:-1])
+        # we need to start pump
+        ans += self.send_command("P1\r\n")
+        ans_ += ans
+        self._logger("Command P1, answer: {}".format(ans)[:-1])
+        # set time of calibration
+        if self._calibration_time == 90:
+            command = "EL\r\n"
+        elif self._calibration_time == 40:
+            command = "EM\r\n"
+        elif self._calibration_time == 21:
+            command = "ES\r\n"
+        else:
+            self._logger("wrong initial calibration time, {}".format(self._calibration_time))
+            self._logger("default time will be 40 sec")
+            command = "EM\r\n"
+
+        ans += self.send_command(command)
+        ans_ += ans
+        self._logger("Command calibraton, answer: {}".format(ans)[:-1])
+        return ans_
+
+    # def get_info(self):
+    #     # only first line of answer
+    #     ans = self.send_command("?\r\n")
+    #     self._logger("Getting info from SBA5")
+    #     return ans[:-1]
+    #
+    # def do_calibration(self):
+    #     ans = self.send_command("Z\r\n")
+    #     self._logger("Starting calibration of SBA5")
+    #     return ans
+    #
+    # def do_measurement(self):
+    #     ans = self.send_command("M\r\n")
+    #     self._logger("Do measure SBA5")
+    #     self._logger(("SBA5 result is {}".format(ans))[:-1])  # its try to remove last \n from here
+    #     return ans
+    #
+    # def get_co2(self):
+    #
+    #     self._logger("Do measure SBA5")
+    #     try:
+    #         ans = self.send_command("M\r\n")
+    #         self._logger("raw result from measure {}".format(ans))
+    #         self._logger(("SBA5 result is {}".format(ans))[:-1])  # its try to remove last \n from here
+    #         pattern = re.compile(r'M \d+ \d+ (\d+.\d+) \d+.\d+ \d+.\d+ \d+.\d+ \d+ \d+\r\n')
+    #         res = pattern.findall(ans)
+    #
+    #         self._logger("we have found this {}".format(res[0]))
+    #         resp = "ack"+str(res[0])
+    #         return resp
+    #
+    #     except Exception as e:
+    #         raise ConnectionError("ERROR {}".format(e))
+    #
+    #
+    # def do_command(self, com):
+    #     ans = self.send_command(com)
+    #     self._logger("send {} command to SBA5".format(com)[:-1])
+    #     return ans
