@@ -300,8 +300,9 @@ class LSSNode(BaseNode):
             name="led"
         )
         self.bmp180 = BMP180Sensor("bmp180")
-        self.si7021 = SI7021("si7021")
         self.sba5 = SBA5Device("sba5")
+        self.si7021 = SI7021("si7021")
+
 
         self._annotation = "lss node for system tests with sba5 device connected"
 

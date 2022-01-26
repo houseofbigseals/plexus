@@ -241,7 +241,8 @@ except ModuleNotFoundError:
 
 class SBA5Device(BaseDevice):
     """
-    hah
+    # /dev/serial/by-id/usb-FTDI_FT230X_Basic_UART_DN03WQZS-if00-port0
+    # Command must ends with \r\n !
     """
 
     def __init__(self, name: str, calibration_time: int = 40,
