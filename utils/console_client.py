@@ -103,16 +103,16 @@ if __name__ == '__main__':
 
     list_of_nodes1 = [
         # {"name": "node1", "address": "tcp://10.9.0.23:5566"}
-        # {"name": "node1", "address": "tcp://10.9.0.23:5566"}
-        {"name": "node1", "address": "tcp://127.0.0.1:5566"}
+        {"name": "node1", "address": "tcp://10.9.0.23:5566"}
+        # {"name": "node1", "address": "tcp://127.0.0.1:5566"}
         ]
 
     print(args)
     # args = parser.parse_args()
     # client_addr = "tcp://10.9.0.21:5565"
-    # client_addr = "tcp://10.9.0.1:5565"
+    client_addr = "tcp://10.9.0.1:5565"
     # client_addr = "tcp://192.168.100.5:5565"
-    client_addr = "tcp://127.0.0.1:5555"
+    # client_addr = "tcp://127.0.0.1:5555"
 
     if flag == "send":
         client = PlexusUserApi(endpoint=client_addr, name="client", list_of_nodes=list_of_nodes1)

@@ -303,7 +303,7 @@ class LSSNode(BaseNode):
         self.si7021 = SI7021("si7021")
         self.sba5 = SBA5Device("sba5")
 
-        self._annotation = "lss node for system tests"
+        self._annotation = "lss node for system tests with sba5 device connected"
 
         self._devices.extend([
             self.n2_valve, self.vent_pump_5, self.vent_pump_6, self.coolers_12v,

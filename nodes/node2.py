@@ -393,7 +393,7 @@ class BaseNode(ABC, Process):
         #     time.sleep(0.1)
         self.logger("ping timer is running: {}".format(self.ping_timer.is_running()))
         self.loop.stop()
-        self.loop.close()
+        self.loop.close()  # TODO fix or simply catch exception
 
     def handle_custom_system_msgs(self, stream, reqv_msg: Message):
         """ user can handle here any custom commands for his custom node"""
