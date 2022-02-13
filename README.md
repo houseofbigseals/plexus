@@ -86,4 +86,48 @@ deactivate
 - создать pull-request и написать разработчикам  
 
 
+#### как писать .cfg-файл  
+
+https://setuptools.pypa.io/en/latest/userguide/quickstart.html  
+
+- зависимости после install_requires =  
+- модули, которые надо включать после  
+```
+[options.packages.find]
+where = src
+```
+
+вот пример  
+
+```
+[metadata]
+name = example-package-BIG-BROWN-MONKEY
+version = 0.0.1
+author = Example Author
+author_email = author@example.com
+description = A small example package
+long_description = file: README.md
+long_description_content_type = text/markdown
+url = https://github.com/pypa/sampleproject
+project_urls =
+    Bug Tracker = https://github.com/pypa/sampleproject/issues
+classifiers =
+    Programming Language :: Python :: 3
+    License :: OSI Approved :: MIT License
+    Operating System :: OS Independent
+
+[options]
+package_dir =
+    = src
+packages = find:
+install_requires = 
+	requests
+	peppercorn
+	pytest
+python_requires = >=3.6
+
+[options.packages.find]
+where = src
+include=example_package, example_package_2
+```
 
