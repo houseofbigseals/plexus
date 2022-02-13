@@ -64,7 +64,7 @@ python3 -m build
 python3 -m venv new_env  
 source new_env/bin/activate  
 ```  
-- войти в созданную папку, скопировать туда созданный wheel-файл __и файл requirements.txt ?__    
+- войти в созданную папку, скопировать туда созданный wheel-файл    
 - запустить загрузку зависимостей:  
 ```
 python3 -m pip install -r requirements.txt  
