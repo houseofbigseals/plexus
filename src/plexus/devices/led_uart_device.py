@@ -3,15 +3,15 @@
 # as if it were a some important device like relay
 
 
-import time, sys, os
+import sys, os
 try:
     from devices.base_device import BaseDevice
     from low_level_drivers.led_uart_driver import UartWrapper
-    from nodes.command import Command
+    from src.plexus.nodes import Command
     from utils.logger import PrintLogger
 except ModuleNotFoundError:
     # here we trying to manually add our lib path to python path
-    abspath = os.path.abspath("..")
+    abspath = os.path.abspath("../..")
     sys.path.insert(0, "{}/devices".format(abspath))
     sys.path.insert(0, "{}/low_level_drivers".format(abspath))
     sys.path.insert(0, "{}/nodes".format(abspath))

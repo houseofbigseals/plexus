@@ -1,28 +1,23 @@
 #!/usr/bin/env python3
 
-import time
-import uuid
-import sys, os
-import argparse
-import textwrap
-from threading import Thread
-import json
+import sys
 
 # custom path imports
 try:
-    from nodes.node2 import BaseNode, PeriodicCallback, Message
-    from utils.console_client_api import PlexusUserApi
+    from src.plexus.nodes import BaseNode, PeriodicCallback, Message
+    from src.plexus.utils.console_client_api import PlexusUserApi
 
 except Exception:
     # here we trying to manually add our lib path to python path
-    abspath = os.path.abspath("..")
-    # print(abspath)
-    sys.path.insert(0, "{}/nodes".format(abspath))
-    sys.path.insert(0, "{}/devices".format(abspath))
-    sys.path.insert(0, "{}/utils".format(abspath))
-    # print(sys.path)
-    from message import Message
-    from console_client_api import PlexusUserApi
+    # abspath = os.path.abspath("..")
+    # # print(abspath)
+    # sys.path.insert(0, "{}/nodes".format(abspath))
+    # sys.path.insert(0, "{}/devices".format(abspath))
+    # sys.path.insert(0, "{}/utils".format(abspath))
+    # # print(sys.path)
+    from plexus.nodes.message import Message
+    from plexus.nodes.node import BaseNode, PeriodicCallback, Message
+    from plexus.utils.console_client_api import PlexusUserApi
 
 
 def print_intro_help():

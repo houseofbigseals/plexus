@@ -1,3 +1,19 @@
+Metadata-Version: 2.1
+Name: plexus
+Version: 0.0.1
+Summary: Simple framework for plant science experiments control
+Home-page: https://github.com/houseofbigseals/plexus
+Author: lab_O_125
+Author-email: aa.buryak@physics.msu.ru
+License: UNKNOWN
+Project-URL: Bug Tracker, https://github.com/houseofbigseals/plexus/issues
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: GPLv3 License
+Classifier: Operating System :: Linux
+Requires-Python: >=3.6
+Description-Content-Type: text/markdown
+
 #### Что это  
   
 Это находящийся в разработке проект по созданию управляющих программ для удаленного управления вегетационными стендами в лаборатории О-125  
@@ -18,54 +34,31 @@
 ```
 plexus/
 ├── LICENSE
-├── dist
-├── pyproject.toml
+├── plexus.toml
 ├── README.md
 ├── requirements.txt
 ├── setup.cfg
 ├── src/
-│   └──plexus
-│		├── __init__.py
-│   	└── nodes_package/
-│       	├── __init__.py
-│       	└── example.py
-│   	└── smth_package/
-│       	├── __init__.py
-│       	└── example.py
-│   	└── .../
-│       	├── __init__.py
-│       	└── ...
+│   └── nodes_package/
+│       ├── __init__.py
+│       └── example.py
+│   └── smth_package/
+│       ├── __init__.py
+│       └── example.py
+│   └── .../
+│       ├── __init__.py
+│       └── ...
 └── tests/
 ```  
-Каждая папка в src/plexus/ хранит подмодуль нашей либы, который умеет делать что-то свое. Иногда они могут ссылаться друг на друга таким образом:  
+Каждая папка в src/ хранит подмодуль нашей либы, который умеет делать что-то свое. Иногда они могут ссылаться друг на друга таким образом:  
 ```
-from plexus.nodes_package.example import somefunc  
+from nodes_package.example import somefunc  
 ```  
-Вроде бы это нормально  
+Не бойтесь, это нормально  
 
 https://packaging.python.org/en/latest/tutorials/packaging-projects/  
 
-#### Как установить простым способом
-
-- Скачать wheel-файл из папки dist репозитория:  
-
-- Сделать новый venv  
-```
-python3 -m venv new_env  
-source new_env/bin/activate  
-```  
-- войти в созданную папку, скопировать туда скачанный wheel-файл    
-
-- установить wheel-файл:  
-```
-python3 -m pip install super_package_hahah-0.0.1-py3-none-any.whl --upgrade  
-```
-- теперь в этом venv вы можете работать с собранным проектом, не боясь загадить всяким мусором свой основной питон и его dist-packages. Чтобы выйти из venv нужно ввести   
-```
-deactivate
-```  
-
-#### Как установить сложным способом
+#### Как установить
 
 Для установки кода нужно следующее:  
 
@@ -93,7 +86,7 @@ source new_env/bin/activate
 ```
 python3 -m pip install super_package_hahah-0.0.1-py3-none-any.whl --upgrade  
 ```
-- теперь в этом venv вы можете работать с собранным проектом, не боясь загадить всяким мусором свой основной питон и его dist-packages. Чтобы выйти изvenv нужно ввести   
+- теперь в этом венве вы можете работать с собранным проектом, не боясь загадить всяким мусором свой основной питон и его dist-packages. Чтобы выйти из венва нужно ввести   
 ```
 deactivate
 ```  
@@ -150,4 +143,6 @@ python_requires = >=3.6
 where = src
 include=example_package, example_package_2
 ```
+
+
 

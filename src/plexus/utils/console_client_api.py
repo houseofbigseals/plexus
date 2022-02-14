@@ -4,7 +4,6 @@ import sys, os
 import time
 # from typing import Any
 import zmq
-import argparse
 import uuid
 import json
 # from zmq.eventloop.ioloop import IOLoop, PeriodicCallback
@@ -12,16 +11,16 @@ import json
 # import datetime
 
 try:
-    from utils.logger import PrintLogger
-    from nodes.node2 import BaseNode, PeriodicCallback, Message
+    from src.plexus.utils.logger import PrintLogger
+    from src.plexus.nodes.node import BaseNode, PeriodicCallback, Message
 except ModuleNotFoundError:
     # here we trying to manually add our lib path to python path
-    abspath = os.path.abspath("..")
-    sys.path.insert(0, "{}/utils".format(abspath))
-    sys.path.insert(0, "{}/nodes".format(abspath))
-    from node2 import BaseNode, PeriodicCallback
-    from message import Message
-    from logger import PrintLogger
+    # abspath = os.path.abspath("../..")
+    # sys.path.insert(0, "{}/utils".format(abspath))
+    # sys.path.insert(0, "{}/nodes".format(abspath))
+    from plexus.nodes.node import BaseNode, PeriodicCallback
+    from plexus.nodes.message import Message
+    from plexus.utils.logger import PrintLogger
 
 
 class PlexusUserApi:

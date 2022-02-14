@@ -7,12 +7,12 @@ import os
 try:
     from utils.logger import PrintLogger
     from low_level_drivers.rpi_gpio_relay_driver import RpiGpioChannelHandler
-    from nodes.message import Message
-    from nodes.command import Command
+    from src.plexus.nodes import Message
+    from src.plexus.nodes import Command
     from devices.base_device import BaseDevice
 except Exception:
     # here we trying to manually add our lib path to python path
-    abspath = os.path.abspath("..")
+    abspath = os.path.abspath("../..")
     sys.path.insert(0, "{}/utils".format(abspath))
     sys.path.insert(0, "{}/low_level_drivers".format(abspath))
     sys.path.insert(0, "{}/devices".format(abspath))

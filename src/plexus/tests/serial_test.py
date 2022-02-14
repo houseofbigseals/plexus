@@ -1,7 +1,7 @@
 import os.path
 import sys
 # here we trying to manually add our lib path to python path
-abspath = os.path.abspath("..")
+abspath = os.path.abspath("../..")
 # print(abspath)
 sys.path.insert(0, "{}/low_level_drivers".format(abspath))
 # print(sys.path)

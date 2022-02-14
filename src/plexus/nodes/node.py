@@ -1,32 +1,25 @@
-import datetime
-import random
 import time
 import uuid
-import os
-import sys
 import zmq
-import pickle
 
 from zmq.eventloop.ioloop import IOLoop, PeriodicCallback
 from zmq.eventloop.zmqstream import ZMQStream
 from multiprocessing import Process
-from abc import ABC, abstractmethod, abstractproperty
-from typing import Any
-
+from abc import ABC, abstractmethod
 
 try:
-    from utils.logger import PrintLogger
-    from nodes.message import Message
-    from nodes.command import Command
+    from src.plexus.utils.logger import PrintLogger
+    from src.plexus.nodes.message import Message
+    from src.plexus.nodes.command import Command
 except ModuleNotFoundError:
     # here we trying to manually add our lib path to python path
-    abspath = os.path.abspath("..")
-    sys.path.insert(0, "{}/utils".format(abspath))
-    sys.path.insert(0, "{}/nodes".format(abspath))
-    from message import Message
-    from logger import PrintLogger
-    from message import Message
-    from command import Command
+    # abspath = os.path.abspath("../..")
+    # sys.path.insert(0, "{}/utils".format(abspath))
+    # sys.path.insert(0, "{}/nodes".format(abspath))
+    from plexus.nodes.message import Message
+    from plexus.utils.logger import PrintLogger
+    from plexus.nodes.message import Message
+    from plexus.nodes.command import Command
 
 
 

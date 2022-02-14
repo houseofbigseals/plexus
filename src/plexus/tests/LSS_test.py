@@ -1,33 +1,31 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import datetime
-import os, sys
-import time
 
 # custom path imports
 try:
-    from nodes.node2 import BaseNode, PeriodicCallback, Message
-    from utils.console_client_api import PlexusUserApi
+    from src.plexus.nodes import BaseNode, PeriodicCallback, Message
+    from src.plexus.utils.console_client_api import PlexusUserApi
     # from nodes.broker import BrokerNode
+    from src.plexus.devices.rpi_gpio_relay_device import RpiGpioRelayDevice
+    from src.plexus.devices.bmp180_device import BMP180Sensor
+    from src.plexus.devices import SI7021
+    from src.plexus.devices.led_uart_device import LedUartDevice
+except Exception:
+    # here we trying to manually add our lib path to python path
+    # abspath = os.path.abspath("..")
+    # print(abspath)
+    # sys.path.insert(0, "{}/nodes".format(abspath))
+    # sys.path.insert(0, "{}/devices".format(abspath))
+    # sys.path.insert(0, "{}/utils".format(abspath))
+    # print(sys.path)
+    from nodes.node import BaseNode, PeriodicCallback
+    from nodes.message import Message
+    from utils.console_client import PlexusUserApi
     from devices.rpi_gpio_relay_device import RpiGpioRelayDevice
     from devices.bmp180_device import BMP180Sensor
     from devices.si7021_device import SI7021
     from devices.led_uart_device import LedUartDevice
-except Exception:
-    # here we trying to manually add our lib path to python path
-    abspath = os.path.abspath("..")
-    print(abspath)
-    sys.path.insert(0, "{}/nodes".format(abspath))
-    sys.path.insert(0, "{}/devices".format(abspath))
-    sys.path.insert(0, "{}/utils".format(abspath))
-    print(sys.path)
-    from node2 import BaseNode, PeriodicCallback
-    from message import Message
-    from console_client import PlexusUserApi
-    from rpi_gpio_relay_device import RpiGpioRelayDevice
-    from bmp180_device import BMP180Sensor
-    from si7021_device import SI7021
-    from led_uart_device import LedUartDevice
 
 
 

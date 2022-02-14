@@ -6,13 +6,13 @@ import sys, os
 
 # custom path imports
 try:
-    from nodes.node2 import BaseNode, PeriodicCallback, Message
+    from src.plexus.nodes import BaseNode, PeriodicCallback, Message
     from utils.console_client_api import PlexusUserApi
     # from nodes.broker import BrokerNode
     from devices.numlock_device import NumLockDevice
 except Exception:
     # here we trying to manually add our lib path to python path
-    abspath = os.path.abspath("..")
+    abspath = os.path.abspath("../..")
     print(abspath)
     sys.path.insert(0, "{}/nodes".format(abspath))
     sys.path.insert(0, "{}/devices".format(abspath))

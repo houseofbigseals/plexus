@@ -1,16 +1,15 @@
 import os
 import sys
-from time import sleep
 # from random import uniform
-from zmq.eventloop.ioloop import IOLoop, PeriodicCallback
+from zmq.eventloop.ioloop import PeriodicCallback
 import random, uuid
 
 try:
-    from low_level_drivers.virtual_device_driver import VirtualDeviceHandler
-    from nodes.node import BaseNode
+    from src.plexus.low_level_drivers.virtual_device_driver import VirtualDeviceHandler
+    from src.plexus.nodes import BaseNode
 except ModuleNotFoundError:
     # here we trying to manually add our lib path to python path
-    abspath = os.path.abspath("..")
+    abspath = os.path.abspath("../..")
     # print(abspath)
     sys.path.insert(0, "{}/low_level_drivers".format(abspath))
     sys.path.insert(0, "{}/nodes".format(abspath))

@@ -4,7 +4,7 @@
 # from zmq.eventloop.ioloop import IOLoop, PeriodicCallback
 # from zmq.eventloop.zmqstream import ZMQStream
 # from multiprocessing import Process
-from abc import ABC, abstractmethod, abstractproperty
+from abc import ABC, abstractmethod
 
 # import inspect
 # from functools import wraps
@@ -13,10 +13,10 @@ import sys, os
 
 try:
     from utils.logger import PrintLogger
-    from nodes.command import Command
+    from src.plexus.nodes import Command
 except ModuleNotFoundError:
     # here we trying to manually add our lib path to python path
-    abspath = os.path.abspath("..")
+    abspath = os.path.abspath("../..")
     sys.path.insert(0, "{}/utils".format(abspath))
     sys.path.insert(0, "{}/nodes".format(abspath))
     from command import Command
