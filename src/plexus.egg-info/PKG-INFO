@@ -34,31 +34,62 @@ Description-Content-Type: text/markdown
 ```
 plexus/
 ├── LICENSE
-├── plexus.toml
+├── dist
+├── pyproject.toml
 ├── README.md
 ├── requirements.txt
 ├── setup.cfg
 ├── src/
-│   └── nodes_package/
-│       ├── __init__.py
-│       └── example.py
-│   └── smth_package/
-│       ├── __init__.py
-│       └── example.py
-│   └── .../
-│       ├── __init__.py
-│       └── ...
+│   └──plexus
+│		├── __init__.py
+│   	└── nodes_package/
+│       	├── __init__.py
+│       	└── example.py
+│   	└── smth_package/
+│       	├── __init__.py
+│       	└── example.py
+│   	└── .../
+│       	├── __init__.py
+│       	└── ...
 └── tests/
 ```  
-Каждая папка в src/ хранит подмодуль нашей либы, который умеет делать что-то свое. Иногда они могут ссылаться друг на друга таким образом:  
+Каждая папка в src/plexus/ хранит подмодуль нашей либы, который умеет делать что-то свое. Иногда они могут ссылаться друг на друга таким образом:  
 ```
-from nodes_package.example import somefunc  
+from plexus.nodes_package.example import somefunc  
 ```  
-Не бойтесь, это нормально  
+Вроде бы это нормально  
 
 https://packaging.python.org/en/latest/tutorials/packaging-projects/  
 
-#### Как установить
+#### Как установить простым способом
+
+- Скачать wheel-файл из папки dist репозитория:  
+
+- Сделать новый venv и  
+```
+python3 -m venv new_env  
+
+```  
+- активировать его
+```
+source new_env/bin/activate  
+```
+- войти в папку, где лежит скачанный wheel-файл, и    
+
+- установить wheel-файл:  
+```
+python3 -m pip install super_package_hahah-0.0.1-py3-none-any.whl --upgrade  
+```
+- теперь, активируя этот venv, вы можете работать с собранным проектом, не боясь загадить всяким мусором свой основной питон и его dist-packages. Чтобы выйти из venv нужно ввести   
+```
+deactivate
+```  
+- важное примечание: ваши файлы не должны находиться внутри папки venv. То есть вы этот venv активируете, а затем идете в другую папку и там пишете код и запускаете его. Питон будет настроен на это виртуальное окружение где бы ни был ваш проект, пока вы не деактивируете venv. Также важно настроить .gitignore так, чтобы папка venv в него не попадала.
+
+- можно настроить ваш Pycharm для работы с вашим кастомным виртуальным окружением.   
+https://www.jetbrains.com/help/pycharm/creating-virtual-environment.html#existing-environment  
+
+#### Как установить сложным способом
 
 Для установки кода нужно следующее:  
 
@@ -75,21 +106,22 @@ python3 -m build
 
 2. Установить wheel-файл:  
 
-- Сделать новый venv  
+- Сделать новый venv и  
 ```
 python3 -m venv new_env  
-source new_env/bin/activate  
+
 ```  
-- войти в созданную папку, скопировать туда созданный wheel-файл    
+- активировать его
+```
+source new_env/bin/activate  
+```
+- войти в папку, где лежит скачанный wheel-файл, и    
 
 - установить wheel-файл:  
 ```
 python3 -m pip install super_package_hahah-0.0.1-py3-none-any.whl --upgrade  
 ```
-- теперь в этом венве вы можете работать с собранным проектом, не боясь загадить всяким мусором свой основной питон и его dist-packages. Чтобы выйти из венва нужно ввести   
-```
-deactivate
-```  
+- теперь, используя этот venv, вы можете работать с собранным проектом, не боясь загадить всяким мусором свой основной питон и его dist-packages. 
 
 #### Как быть если вы хотите что-то обновить в коде
 
@@ -99,7 +131,7 @@ deactivate
 - создать pull-request и написать разработчикам  
 
 
-#### как писать .cfg-файл  
+#### Как писать .cfg-файл  
 
 https://setuptools.pypa.io/en/latest/userguide/quickstart.html  
 

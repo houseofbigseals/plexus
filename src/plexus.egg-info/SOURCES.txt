@@ -17,6 +17,7 @@ src/plexus/devices/sba5_device.py
 src/plexus/devices/si7021_device.py
 src/plexus/low_level_drivers/__init__.py
 src/plexus/low_level_drivers/bmp180_driver.py
+src/plexus/low_level_drivers/clot_client.py
 src/plexus/low_level_drivers/ds18b20_driver.py
 src/plexus/low_level_drivers/k30_driver.py
 src/plexus/low_level_drivers/led_uart_driver.py
