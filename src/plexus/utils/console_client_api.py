@@ -11,16 +11,19 @@ import json
 # import datetime
 
 try:
-    from src.plexus.utils.logger import PrintLogger
-    from src.plexus.nodes.node import BaseNode, PeriodicCallback, Message
+    from plexus.nodes.node import BaseNode, PeriodicCallback
+    from plexus.nodes.message import Message
+    from plexus.utils.logger import PrintLogger
+
 except ModuleNotFoundError:
+    from src.plexus.utils.logger import PrintLogger
+    from src.plexus.nodes.node import BaseNode, PeriodicCallback
+    from src.plexus.nodes.message import Message
     # here we trying to manually add our lib path to python path
     # abspath = os.path.abspath("../..")
     # sys.path.insert(0, "{}/utils".format(abspath))
     # sys.path.insert(0, "{}/nodes".format(abspath))
-    from plexus.nodes.node import BaseNode, PeriodicCallback
-    from plexus.nodes.message import Message
-    from plexus.utils.logger import PrintLogger
+
 
 
 class PlexusUserApi:

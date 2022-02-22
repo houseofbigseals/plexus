@@ -15,9 +15,9 @@ src/plexus/devices/numlock_device.py
 src/plexus/devices/rpi_gpio_relay_device.py
 src/plexus/devices/sba5_device.py
 src/plexus/devices/si7021_device.py
+src/plexus/devices/simple_avr_relay_device.py
 src/plexus/low_level_drivers/__init__.py
 src/plexus/low_level_drivers/bmp180_driver.py
-src/plexus/low_level_drivers/clot_client.py
 src/plexus/low_level_drivers/ds18b20_driver.py
 src/plexus/low_level_drivers/k30_driver.py
 src/plexus/low_level_drivers/led_uart_driver.py
@@ -26,6 +26,7 @@ src/plexus/low_level_drivers/rpi_gpio_relay_driver.py
 src/plexus/low_level_drivers/sba5_driver.py
 src/plexus/low_level_drivers/scales_driver.py
 src/plexus/low_level_drivers/si7021_driver.py
+src/plexus/low_level_drivers/simple_avr_relay_driver.py
 src/plexus/low_level_drivers/virtual_device_driver.py
 src/plexus/low_level_drivers/virtual_serial_device.py
 src/plexus/nodes/__init__.py
@@ -37,6 +38,7 @@ src/plexus/tests/LSS_test.py
 src/plexus/tests/__init__.py
 src/plexus/tests/abstract_scada_test.py
 src/plexus/tests/base_nodes_test.py
+src/plexus/tests/conduct_test.py
 src/plexus/tests/dual_test_1.py
 src/plexus/tests/dual_test_2.py
 src/plexus/tests/serial_test.py

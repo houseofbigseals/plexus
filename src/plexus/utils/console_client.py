@@ -4,10 +4,14 @@ import sys
 
 # custom path imports
 try:
-    from src.plexus.nodes import BaseNode, PeriodicCallback, Message
-    from src.plexus.utils.console_client_api import PlexusUserApi
+    from plexus.nodes.message import Message
+    from plexus.nodes.node import BaseNode, PeriodicCallback
+    from plexus.utils.console_client_api import PlexusUserApi
 
 except Exception:
+    from src.plexus.nodes.node import BaseNode, PeriodicCallback
+    from src.plexus.utils.console_client_api import PlexusUserApi
+    from src.plexus.nodes.message import Message
     # here we trying to manually add our lib path to python path
     # abspath = os.path.abspath("..")
     # # print(abspath)
@@ -15,9 +19,7 @@ except Exception:
     # sys.path.insert(0, "{}/devices".format(abspath))
     # sys.path.insert(0, "{}/utils".format(abspath))
     # # print(sys.path)
-    from plexus.nodes.message import Message
-    from plexus.nodes.node import BaseNode, PeriodicCallback, Message
-    from plexus.utils.console_client_api import PlexusUserApi
+
 
 
 def print_intro_help():
@@ -98,7 +100,8 @@ if __name__ == '__main__':
 
     list_of_nodes1 = [
         # {"name": "node1", "address": "tcp://10.9.0.23:5566"}
-        {"name": "node1", "address": "tcp://10.9.0.23:5566"}
+        {"name": "node1", "address": "tcp://10.9.0.23:5566"},
+        {"name": "node2", "address": "tcp://10.9.0.1:5567"}
         # {"name": "node1", "address": "tcp://127.0.0.1:5566"}
         ]
 

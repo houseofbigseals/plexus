@@ -12,15 +12,15 @@ from abc import ABC, abstractmethod
 import sys, os
 
 try:
-    from utils.logger import PrintLogger
-    from src.plexus.nodes import Command
+    from plexus.utils.logger import PrintLogger
+    from plexus.nodes.command import Command
 except ModuleNotFoundError:
-    # here we trying to manually add our lib path to python path
-    abspath = os.path.abspath("../..")
-    sys.path.insert(0, "{}/utils".format(abspath))
-    sys.path.insert(0, "{}/nodes".format(abspath))
-    from command import Command
-    from logger import PrintLogger
+    # # here we trying to manually add our lib path to python path
+    # abspath = os.path.abspath("../..")
+    # sys.path.insert(0, "{}/utils".format(abspath))
+    # sys.path.insert(0, "{}/nodes".format(abspath))
+    from src.plexus.nodes.command import Command
+    from src.plexus.utils.logger import PrintLogger
 
 
 class BaseDevice(ABC):

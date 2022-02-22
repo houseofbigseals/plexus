@@ -8,18 +8,18 @@ from multiprocessing import Process
 from abc import ABC, abstractmethod
 
 try:
-    from src.plexus.utils.logger import PrintLogger
-    from src.plexus.nodes.message import Message
-    from src.plexus.nodes.command import Command
+    from plexus.nodes.message import Message
+    from plexus.utils.logger import PrintLogger
+    from plexus.nodes.command import Command
+
 except ModuleNotFoundError:
     # here we trying to manually add our lib path to python path
     # abspath = os.path.abspath("../..")
     # sys.path.insert(0, "{}/utils".format(abspath))
     # sys.path.insert(0, "{}/nodes".format(abspath))
-    from plexus.nodes.message import Message
-    from plexus.utils.logger import PrintLogger
-    from plexus.nodes.message import Message
-    from plexus.nodes.command import Command
+    from src.plexus.utils.logger import PrintLogger
+    from src.plexus.nodes.message import Message
+    from src.plexus.nodes.command import Command
 
 
 

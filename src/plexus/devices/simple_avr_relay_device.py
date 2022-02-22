@@ -1,12 +1,14 @@
 
 try:
+    from plexus.low_level_drivers.simple_avr_relay_driver import SimpleRelayControl
+    from plexus.nodes.node import Command
+    from plexus.nodes.message import Message
+    from plexus.devices.base_device import BaseDevice
+
+except Exception as e:
     from src.plexus.low_level_drivers.simple_avr_relay_driver import SimpleRelayControl
     from src.plexus.nodes.node import Command, Message
     from src.plexus.devices.base_device import BaseDevice
-except Exception as e:
-    from plexus.low_level_drivers.simple_avr_relay_driver import SimpleRelayControl
-    from plexus.nodes.node import Command, Message
-    from plexus.devices.base_device import BaseDevice
 
 
 class AVRRelayDevice(BaseDevice):
