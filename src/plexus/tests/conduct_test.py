@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import datetime
 import serial
+import sys
 
 # custom path imports
 try:
@@ -65,8 +66,12 @@ class ConductStandControlNode(BaseNode):
 
 
 if __name__ == "__main__":
+    print("we are awaiting tcp addr in format 10.9.0.1")
+    # we are awaiting addr as 10.9.0.1
+    my_addr = str(sys.argv[1])
+
     list_of_nodes1 = [
-        {"name": "node2", "address": "tcp://10.9.0.1:5567"}
+        {"name": "node2", "address": "tcp://{}:5567".format(my_addr)}
         # {"name": "node2", "address": "tcp://10.9.0.12:5567"},
     ]
     n1 = ConductStandControlNode(name=list_of_nodes1[0]['name'], endpoint=list_of_nodes1[0]['address'],
