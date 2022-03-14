@@ -284,10 +284,13 @@ class BaseNode(ABC, Process):
 
         # 3) check if it is command to one of our devices
         # let's check which device the message was sent to
+
         else:
+            found_flag = False
             for device_ in self._devices:
                 self.logger("msg device is {}".format(decoded_dict["device"]))
                 if device_.name == decoded_dict["device"]:
+                    found_flag = True
                     self.logger("found requested device in our devices {}".format(device_.name))
                     # then call selected method on this device with that params
                     try:
@@ -321,9 +324,10 @@ class BaseNode(ABC, Process):
                         self.send(stream, res_msg)
 
             # this is shit and we dont want to handle it
-            self.logger("command {} is not system, trying to use user handler".format(decoded_dict["command"]))
-            # 5) may be user want to handle it somehow
-            self.custom_request_parser(stream, decoded_msg)
+            if not found_flag:
+                self.logger("command {} is not system, trying to use user handler".format(decoded_dict["command"]))
+                # 5) may be user want to handle it somehow
+                self.custom_request_parser(stream, decoded_msg)
 
     def handle_system_msgs(self, stream, reqv_msg: Message):
         """handler to base commands, those can be sent to every node by another node"""

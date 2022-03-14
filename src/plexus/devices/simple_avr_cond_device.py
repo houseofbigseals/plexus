@@ -18,6 +18,12 @@ class AVRCondDevice(BaseDevice):
     def __init__(self, name: str, num_of_channels: int = 6,
                  dev: str = "/dev/ttyUSB1", baud: int = 9600, timeout: int = 1, slave_id: int = 2):
         super().__init__(name)
+
+        # for ax2+bx+c approximation
+        # TODO mb send it through init args?
+        self.a = 1.41433757
+        self.b = -6.43387014
+        self.c = 7.81645995
         self._sensor = SimpleCondSensorControl(dev=dev, baud=baud, timeout=timeout)
         self._annotation = "this is simple test device to control six relay channels through AVR mcu"
         self.slave_id = slave_id
@@ -33,14 +39,27 @@ class AVRCondDevice(BaseDevice):
         self._status = "work"
         print("awailable commands for me {}".format(self._available_commands))
 
+    def raw_to_approx(self, raw_data):
+        x = raw_data
+        return self.a*x*x + self.b*x + self.c
+
     def device_commands_handler(self, command, **kwargs):
 
         if command == "get_data":
             try:
-
                 echo, ans = self._sensor.get_data(self.slave_id)
                 self._status = "work"
                 return float(ans.decode('utf-8'))
+            except Exception as e:
+                self._status = "error"
+                raise ConnectionError("ERROR {}".format(e))
+        if command == "get_approx_data":
+            try:
+                echo, ans = self._sensor.get_data(self.slave_id)
+                self._status = "work"
+                rd = float(ans.decode('utf-8'))
+                appr_data = self.raw_to_approx(rd)
+                return appr_data
             except Exception as e:
                 self._status = "error"
                 raise ConnectionError("ERROR {}".format(e))

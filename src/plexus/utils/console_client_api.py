@@ -127,6 +127,7 @@ class PlexusUserApi:
             self.logger("problem with sending message: {}".format(e))
             answer = None
         # self.logger(answer)
+        self.logger("we got resp: {}".format(answer))
         return answer
 
 
