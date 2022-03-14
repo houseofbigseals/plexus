@@ -30,12 +30,17 @@ class AVRCondDevice(BaseDevice):
         self.num_of_channels = num_of_channels
         self._status = "started"
 
-        get_data_command = Command(
-            name="get_data",
-            annotation="get conductivity data from custom sensor",
+        get_raw_data_command = Command(
+            name="get_raw_data",
+            annotation="get raw conductivity data from custom sensor",
             output_kwargs={"conductivity": "float"}
         )
-        self._available_commands.extend([get_data_command])
+        get_approx_data_command = Command(
+            name="get_approx_data",
+            annotation="get scaled conductivity data from custom sensor",
+            output_kwargs={"conductivity": "float"}
+        )
+        self._available_commands.extend([get_raw_data_command, get_approx_data_command])
         self._status = "work"
         print("awailable commands for me {}".format(self._available_commands))
 
@@ -45,7 +50,7 @@ class AVRCondDevice(BaseDevice):
 
     def device_commands_handler(self, command, **kwargs):
 
-        if command == "get_data":
+        if command == "get_raw_data":
             try:
                 echo, ans = self._sensor.get_data(self.slave_id)
                 self._status = "work"
