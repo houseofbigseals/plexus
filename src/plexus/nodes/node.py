@@ -327,7 +327,7 @@ class BaseNode(ABC, Process):
             if not found_flag:
                 self.logger("command {} is not system, trying to use user handler".format(decoded_dict["command"]))
                 # 5) may be user want to handle it somehow
-                self.custom_request_parser(stream, decoded_msg)
+                self.custom_request_parser(stream, reqv_msg)
 
     def handle_system_msgs(self, stream, reqv_msg: Message):
         """handler to base commands, those can be sent to every node by another node"""

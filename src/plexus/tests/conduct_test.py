@@ -163,9 +163,12 @@ class ConductStandControlNode(BaseNode):
         self.system_commands.append(one_cycle_command)
         self.system_commands.append(status_command)
 
+        self.logger("my system commands")
+        self.logger(self.system_commands)
+
         self.need_one_cycle = False
-        self.num_of_done_cycles = 0
-        self.max_num_of_cycles = 10
+        # self.num_of_done_cycles = 0
+        # self.max_num_of_cycles = 10
         self.measure_pause = 5000  # ms
         self.time_quant = 10  # ms
         self.sleep_timer_delay = 0  # ms
@@ -216,22 +219,31 @@ class ConductStandControlNode(BaseNode):
                 self.avr_relay_dev.call(command="off", input_kwargs={"channel": self.mixing_pump})
                 # here must be code for draining 40 ml of water out from system
                 self.system_stage_flag = "waiting for the start of cycle"
-                
+
     def handle_custom_system_msgs(self, stream, reqv_msg: Message):
-        addr_decoded, decoded_dict = Message.parse_zmq_msg(reqv_msg)
+        # addr_decoded, decoded_dict = Message.parse_zmq_msg(reqv_msg)
         # self.logger([addr_decoded, decoded_dict])
         # decoded_msg = Message.create_msg_from_addr_and_dict(addr_decoded=addr_decoded, decoded_dict=decoded_dict)
-        self.logger(decoded_dict)
-        if decoded_dict["command"] == "one_cycle":
-            self.system_stage_flag = "need_dozing"
-            res_msg = Message(
-                addr=addr_decoded,
-                device=decoded_dict["device"],
-                command="resp",
-                msg_id=decoded_dict["msg_id"],
-                time_=time.time(),
-                data="ok"
-            )
+        # self.logger(decoded_dict)
+        # if decoded_dict["command"] == "one_cycle":
+        #     self.system_stage_flag = "need_dozing"
+        #     res_msg = Message(
+        #         addr=addr_decoded,
+        #         device=decoded_dict["device"],
+        #         command="resp",
+        #         msg_id=decoded_dict["msg_id"],
+        #         time_=time.time(),
+        #         data="ok"
+        #     )
+        self.logger("we got custom system request")
+        res_msg = Message(
+            addr=reqv_msg.addr,
+            device=reqv_msg.device,
+            command="resp",
+            msg_id=reqv_msg.msg_id,
+            time_=time.time(),
+            data=self.info
+        )
             return res_msg
 
         if decoded_dict["command"] == "status":
