@@ -1,3 +1,6 @@
+
+from numpy import exp
+
 try:
     from plexus.low_level_drivers.simple_avr_cond_driver import SimpleCondSensorControl
     from plexus.nodes.node import Command
@@ -21,9 +24,17 @@ class AVRCondDevice(BaseDevice):
 
         # for ax2+bx+c approximation
         # TODO mb send it through init args?
-        self.a = 1.41433757
-        self.b = -6.43387014
-        self.c = 7.81645995
+        # self.a = 1.41433757
+        # self.b = -6.43387014
+        # self.c = 7.81645995
+        # self.a = 1.134
+        # self.b = -8.218
+        # self.c = 20.264
+        # self.d = -16.255
+        # self.a = 0.019
+        # self.b = 1.4
+        self.a = 0.4819
+        self.b = 4.1594  # polynomial approx
         self._sensor = SimpleCondSensorControl(dev=dev, baud=baud, timeout=timeout)
         self._annotation = "this is simple test device to control six relay channels through AVR mcu"
         self.slave_id = slave_id
@@ -46,7 +57,9 @@ class AVRCondDevice(BaseDevice):
 
     def raw_to_approx(self, raw_data):
         x = raw_data
-        return self.a*x*x + self.b*x + self.c
+        # return self.a*x*x*x + self.b*x*x + self.c*x + self.d
+        # return self.a*exp(self.b*x)
+        return self.a*x/(self.b-x)
 
     def device_commands_handler(self, command, **kwargs):
 
