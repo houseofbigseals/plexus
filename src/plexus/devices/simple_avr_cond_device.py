@@ -77,6 +77,7 @@ class AVRCondDevice(BaseDevice):
                 self._status = "work"
                 rd = float(ans.decode('utf-8'))
                 appr_data = self.raw_to_approx(rd)
+                print(rd, appr_data)
                 return appr_data
             except Exception as e:
                 self._status = "error"
