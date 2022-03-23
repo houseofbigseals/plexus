@@ -197,7 +197,7 @@ class ConductStandControlNode(BaseNode):
 
     def on_data_saving(self):
         conductivity = self.avr_cond_dev.call("get_approx_data")
-        f = open(self.out_file)
+        f = open(self.out_file, 'a')
         wr = csv.writer(f)
         now = datetime.datetime.now()
         time = now.strftime("%H:%M:%S")
