@@ -4,6 +4,7 @@ import datetime
 import serial
 import time
 import sys
+import csv
 
 
 
@@ -181,6 +182,7 @@ class ConductStandControlNode(BaseNode):
         self.input_pump = 4
 
         # exp data storaging
+        self.out_file = "out.csv"
 
     def custom_preparation(self):
         self.logger("custom init")
@@ -195,6 +197,14 @@ class ConductStandControlNode(BaseNode):
 
     def on_data_saving(self):
         conductivity = self.avr_cond_dev.call("get_approx_data")
+        f = open(self.out_file)
+        wr = csv.writer(f)
+        now = datetime.datetime.now()
+        time = now.strftime("%H:%M:%S")
+        date = now.strftime("%d/%m/%Y")
+        data_row = [date, time, conductivity]
+        wr.writerow(data_row)
+        f.close()
         self.logger(conductivity)
 
     def on_system_timer(self):
