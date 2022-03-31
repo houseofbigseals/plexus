@@ -2,6 +2,7 @@ import time
 import uuid
 import zmq
 
+
 from zmq.eventloop.ioloop import IOLoop, PeriodicCallback
 from zmq.eventloop.zmqstream import ZMQStream
 from multiprocessing import Process
@@ -14,9 +15,6 @@ try:
 
 except ModuleNotFoundError:
     # here we trying to manually add our lib path to python path
-    # abspath = os.path.abspath("../..")
-    # sys.path.insert(0, "{}/utils".format(abspath))
-    # sys.path.insert(0, "{}/nodes".format(abspath))
     from src.plexus.utils.logger import PrintLogger
     from src.plexus.nodes.message import Message
     from src.plexus.nodes.command import Command
