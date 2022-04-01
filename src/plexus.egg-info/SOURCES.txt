@@ -34,6 +34,7 @@ src/plexus/low_level_drivers/virtual_serial_device.py
 src/plexus/nodes/__init__.py
 src/plexus/nodes/command.py
 src/plexus/nodes/message.py
+src/plexus/nodes/mysql_db_handler.py
 src/plexus/nodes/node.py
 src/plexus/tests/LSS_plus_CO2.py
 src/plexus/tests/LSS_test.py

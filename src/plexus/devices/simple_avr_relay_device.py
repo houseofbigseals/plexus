@@ -1,3 +1,4 @@
+import time
 
 try:
     from plexus.low_level_drivers.simple_avr_relay_driver import SimpleRelayControl
@@ -40,7 +41,13 @@ class AVRRelayDevice(BaseDevice):
             input_kwargs={"channel": "int"}
         )
 
-        self._available_commands.extend([on_command, off_command])
+        reboot = Command(
+            name="reboot",
+            annotation="reboot avr device by set DTR off and on",
+            output_kwargs={"answer": "str"}
+        )
+
+        self._available_commands.extend([on_command, off_command, reboot])
         self._state = "off"
         self._status = "work"
         print("awailable commands for me {}".format(self._available_commands))
@@ -56,7 +63,7 @@ class AVRRelayDevice(BaseDevice):
                 return ans.decode('utf-8')
             except Exception as e:
                 self._status = "error"
-                raise ConnectionError("ERROR {}".format(e))
+                return "ERROR {}".format(e)
 
         if command == "off":
             try:
@@ -67,4 +74,30 @@ class AVRRelayDevice(BaseDevice):
                 return ans.decode('utf-8')
             except Exception as e:
                 self._status = "error"
-                raise ConnectionError("ERROR {}".format(e))
+                return "ERROR {}".format(e)
+
+        if command == "reboot":
+            try:
+                # ch = int(kwargs["channel"])
+                # echo, ans = self._relay.set_relay(slave_id=1, relay_channel=ch, state=1)
+                # self._state = "off"
+                # self._status = "work"
+                res = self._relay.reboot()
+                return res
+            except Exception as e:
+                self._status = "error"
+                return "ERROR {}".format(e)
+
+
+if __name__ == "__main__":
+    d = AVRRelayDevice(
+        name="fuu",
+        num_of_channels=6,
+        dev= "/dev/ttyUSB0",
+        baud= 9600,
+        timeout=1,
+        slave_id=1
+    )
+    d.call("on", **{"channel":1})
+    time.sleep(2)
+    d.call("off", **{"channel": 1})

@@ -138,13 +138,13 @@ class ConductStandControlNode(BaseNode):
             slave_id=1
         )
 
-        self.avr_cond_dev = AVRCondDevice(
-            name="avr_sensor",
-            dev='/dev/ttyUSB1',
-            baud=9600,
-            timeout=1,
-            slave_id=2
-        )
+        # self.avr_cond_dev = AVRCondDevice(
+        #     name="avr_sensor",
+        #     dev='/dev/ttyUSB1',
+        #     baud=9600,
+        #     timeout=1,
+        #     slave_id=2
+        # )
 
         # additional system command
         one_cycle_command = Command(
@@ -159,7 +159,8 @@ class ConductStandControlNode(BaseNode):
             output_kwargs={"status_string": "status"}
         )
         self._annotation = "control node for conductivity control stand with mixer"
-        self._devices.extend([self.avr_cond_dev, self.avr_relay_dev])
+        # self._devices.extend([self.avr_cond_dev, self.avr_relay_dev])
+        self._devices.extend([self.avr_relay_dev])
 
         self.system_commands.append(one_cycle_command)
         self.system_commands.append(status_command)
@@ -183,6 +184,7 @@ class ConductStandControlNode(BaseNode):
 
         # exp data storaging
         self.out_file = "out.csv"
+        self.blink_flag = False
 
     def custom_preparation(self):
         self.logger("custom init")
@@ -196,16 +198,23 @@ class ConductStandControlNode(BaseNode):
     #     pass
 
     def on_data_saving(self):
-        conductivity = self.avr_cond_dev.call("get_approx_data")
-        f = open(self.out_file, 'a')
-        wr = csv.writer(f)
-        now = datetime.datetime.now()
-        time = now.strftime("%H:%M:%S")
-        date = now.strftime("%d/%m/%Y")
-        data_row = [date, time, conductivity]
-        wr.writerow(data_row)
-        f.close()
-        self.logger(conductivity)
+        # conductivity = self.avr_cond_dev.call("get_approx_data")
+        # f = open(self.out_file, 'a')
+        # wr = csv.writer(f)
+        # now = datetime.datetime.now()
+        # time = now.strftime("%H:%M:%S")
+        # date = now.strftime("%d/%m/%Y")
+        # data_row = [date, time, conductivity]
+        # wr.writerow(data_row)
+        # f.close()
+        # self.logger(conductivity)
+        if self.blink_flag:
+            self.blink_flag = False
+            self.avr_relay_dev.call(command="off", **{"channel": 1})
+        else:
+            self.blink_flag = True
+            self.avr_relay_dev.call(command="on", **{"channel": 1})
+
 
     def on_system_timer(self):
 
@@ -217,16 +226,16 @@ class ConductStandControlNode(BaseNode):
         else:
             if self.system_stage_flag == "need_dozing":
                 # it means that we have to work
-                self.avr_relay_dev.call(command="on", input_kwargs={"channel": self.dosing_pump})
+                self.avr_relay_dev.call(command="on", **{"channel": self.dosing_pump})
                 self.system_stage_flag = "need_mixing"
                 self.sleep_timer_delay = 3000
             elif self.system_stage_flag == "need_mixing":
-                self.avr_relay_dev.call(command="off", input_kwargs={"channel": self.dosing_pump})
-                self.avr_relay_dev.call(command="on", input_kwargs={"channel": self.mixing_pump})
+                self.avr_relay_dev.call(command="off", **{"channel": self.dosing_pump})
+                self.avr_relay_dev.call(command="on", **{"channel": self.mixing_pump})
                 self.system_stage_flag = "need_draining"
                 self.sleep_timer_delay = 480000
             elif self.system_stage_flag == "need_draining":
-                self.avr_relay_dev.call(command="off", input_kwargs={"channel": self.mixing_pump})
+                self.avr_relay_dev.call(command="off", **{"channel": self.mixing_pump})
                 # here must be code for draining 40 ml of water out from system
                 self.system_stage_flag = "waiting for the start of cycle"
 
@@ -270,7 +279,7 @@ if __name__ == "__main__":
     my_addr = str(sys.argv[1])
 
     list_of_nodes1 = [
-        {"name": "node2", "address": "tcp://{}:5567".format(my_addr)}
+        {"name": "node4", "address": "tcp://{}:5567".format(my_addr)}
         # {"name": "node2", "address": "tcp://10.9.0.12:5567"},
     ]
     n1 = ConductStandControlNode(name=list_of_nodes1[0]['name'], endpoint=list_of_nodes1[0]['address'],

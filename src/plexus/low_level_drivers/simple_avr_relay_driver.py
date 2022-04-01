@@ -183,6 +183,13 @@ class SimpleRelayControl:
         self.baud = baud
         self.timeout = timeout
         self.serial_dev = serial.Serial(port=self.dev, baudrate=self.baud, timeout=self.timeout)
+        # The AVR Arduinos (Uno, Nano, Mega) have auto-reset function. At opening of USB connection
+        # the circuit around USB resets the MCU. After reset the bootloader waits a second for a new upload.
+        # If the upload doesn't happen the bootloader starts the current sketch.
+        #
+        # The serial.Serial() command in python opens the USB connection. With that the Arduino
+        # is reset and waits in bootloader while you send the data. The data doesn't arrive in your
+        # sketch. Add a two seconds wait time after Python's serial.Serial().
         time.sleep(2)
 
     def send_command(self, com: str):
@@ -204,6 +211,16 @@ class SimpleRelayControl:
         command = "a" + str(slave_id) + str(relay_channel) + str(state) + "d" + "\n"
         return self.send_command(command)
 
+    def reboot(self):
+        # Toggle DTR to reset Arduino
+        self.serial_dev.setDTR(False)
+        time.sleep(1)
+        # toss any data already received, see
+        # http://pyserial.sourceforge.net/pyserial_api.html#serial.Serial.flushInput
+        self.serial_dev.flushInput()
+        self.serial_dev.setDTR(True)
+        return "REBOOTED"
+
 if __name__ == "__main__":
     # c = ClotClient(
     #     dev="/dev/ttyUSB0",
@@ -219,7 +236,7 @@ if __name__ == "__main__":
 
     c = SimpleRelayControl(dev, baud, timeout)
     c.set_relay(1, 6, 1)
-   #
+    #
     #
     # The AVR Arduinos (Uno, Nano, Mega) have auto-reset function. At opening of USB connection
     # the circuit around USB resets the MCU. After reset the bootloader waits a second for a new upload.

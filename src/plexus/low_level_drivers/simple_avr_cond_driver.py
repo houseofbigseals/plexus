@@ -21,6 +21,11 @@ class SimpleCondSensorControl:
             reaction is
 			String with value of conductivity
 			or error code
+
+			if we want to reboot arduino we have to
+			https://stackoverflow.com/questions/21073086/wait-on-arduino-auto-reset-using-pyserial
+
+
     """
     def __init__(self, dev, baud, timeout):
         self.dev = dev
@@ -51,6 +56,15 @@ class SimpleCondSensorControl:
         command = "a" + str(slave_id) + '1' + 'c' + "d" + "\n"
         return self.send_command(command)
 
+    def reboot(self):
+        # Toggle DTR to reset Arduino
+        self.serial_dev.setDTR(False)
+        time.sleep(1)
+        # toss any data already received, see
+        # http://pyserial.sourceforge.net/pyserial_api.html#serial.Serial.flushInput
+        self.serial_dev.flushInput()
+        self.serial_dev.setDTR(True)
+
 if __name__ == "__main__":
     # c = ClotClient(
     #     dev="/dev/ttyUSB0",
@@ -60,10 +74,17 @@ if __name__ == "__main__":
     # com = c.create_clot_master_command(0x01, 0x01, 0x00)
     # print(com)
     # print(c.send_command(com))
-    dev = "/dev/ttyUSB0"
+    dev = "/dev/ttyUSB1"
     baud = 9600
     timeout = 1
 
     c = SimpleCondSensorControl(dev, baud, timeout)
-    for i in range(0, 20):
+    for i in range(0, 3):
+        print(c.get_data(2))
+
+    print("now try to reload")
+
+    c.reboot()
+
+    for i in range(0, 3):
         print(c.get_data(2))
