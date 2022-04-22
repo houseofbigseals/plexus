@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import sys
-import os
-
 try:
     from utils.logger import PrintLogger
     from low_level_drivers.rpi_gpio_relay_driver import RpiGpioChannelHandler
