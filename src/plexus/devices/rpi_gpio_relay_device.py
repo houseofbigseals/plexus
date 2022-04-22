@@ -12,17 +12,16 @@ try:
     from devices.base_device import BaseDevice
 except Exception:
     # here we trying to manually add our lib path to python path
-    abspath = os.path.abspath("../..")
-    sys.path.insert(0, "{}/utils".format(abspath))
-    sys.path.insert(0, "{}/low_level_drivers".format(abspath))
-    sys.path.insert(0, "{}/devices".format(abspath))
-    sys.path.insert(0, "{}/nodes".format(abspath))
-    from command import Command
-    from message import Message
-    from logger import PrintLogger
-    from message import Message
-    from base_device import BaseDevice
-    from rpi_gpio_relay_driver import RpiGpioChannelHandler
+    # abspath = os.path.abspath("../..")
+    # sys.path.insert(0, "{}/utils".format(abspath))
+    # sys.path.insert(0, "{}/low_level_drivers".format(abspath))
+    # sys.path.insert(0, "{}/devices".format(abspath))
+    # sys.path.insert(0, "{}/nodes".format(abspath))
+    from plexus.nodes.command import Command
+    from plexus.nodes.message import Message
+    from plexus.utils.logger import PrintLogger
+    from plexus.devices.base_device import BaseDevice
+    from plexus.low_level_drivers.rpi_gpio_relay_driver import RpiGpioChannelHandler
 
 
 class RpiGpioRelayDevice(BaseDevice):
