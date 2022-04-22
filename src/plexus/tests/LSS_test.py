@@ -21,6 +21,7 @@ except Exception:
     # print(sys.path)
     from plexus.nodes.node import BaseNode, PeriodicCallback
     from plexus.nodes.message import Message
+    from plexus.nodes.command import Command
     from plexus.utils.console_client import PlexusUserApi
     from plexus.devices.rpi_gpio_relay_device import RpiGpioRelayDevice
     from plexus.devices.bmp180_device import BMP180Sensor
