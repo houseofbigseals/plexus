@@ -1,3 +1,4 @@
+import datetime
 import time
 import uuid
 import zmq
@@ -7,6 +8,7 @@ from zmq.eventloop.ioloop import IOLoop, PeriodicCallback
 from zmq.eventloop.zmqstream import ZMQStream
 from multiprocessing import Process
 from abc import ABC, abstractmethod
+from datetime import datetime
 
 try:
     from plexus.nodes.message import Message
@@ -56,7 +58,7 @@ class BaseNode(ABC, Process):
 
     # ===============================================================================
 
-    def __init__(self, endpoint: str, name: str, list_of_nodes: list, is_daemon: bool = True):
+    def __init__(self, endpoint: str, list_of_nodes: list, is_daemon: bool = True):
         """
         :param list_of_nodes: must be list with dicts like
         [
@@ -69,10 +71,12 @@ class BaseNode(ABC, Process):
         :param is_daemon:
         """
         Process.__init__(self, daemon=is_daemon)
-        self.name = name
+
         self.logger = PrintLogger(self.name)
         self.logger("start init")
         self._endpoint = endpoint
+        self.name = str(self._endpoint) + "_" + str(datetime.now())
+        self.logger("my name is {}".format(self.name))
         # container to keep all local devices in one place
         self._devices = list()
         self.loop = None

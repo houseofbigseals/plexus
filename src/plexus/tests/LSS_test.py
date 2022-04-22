@@ -19,13 +19,13 @@ except Exception:
     # sys.path.insert(0, "{}/devices".format(abspath))
     # sys.path.insert(0, "{}/utils".format(abspath))
     # print(sys.path)
-    from nodes.node import BaseNode, PeriodicCallback
-    from nodes.message import Message
-    from utils.console_client import PlexusUserApi
-    from devices.rpi_gpio_relay_device import RpiGpioRelayDevice
-    from devices.bmp180_device import BMP180Sensor
-    from devices.si7021_device import SI7021
-    from devices.led_uart_device import LedUartDevice
+    from plexus.nodes.node import BaseNode, PeriodicCallback
+    from plexus.nodes.message import Message
+    from plexus.utils.console_client import PlexusUserApi
+    from plexus.devices.rpi_gpio_relay_device import RpiGpioRelayDevice
+    from plexus.devices.bmp180_device import BMP180Sensor
+    from plexus.devices.si7021_device import SI7021
+    from plexus.devices.led_uart_device import LedUartDevice
 
 
 
