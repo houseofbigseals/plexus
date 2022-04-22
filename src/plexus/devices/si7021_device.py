@@ -7,13 +7,10 @@ try:
     from src.plexus.nodes import Command
 except ModuleNotFoundError:
     # here we trying to manually add our lib path to python path
-    abspath = os.path.abspath("../..")
-    sys.path.insert(0, "{}/devices".format(abspath))
-    sys.path.insert(0, "{}/low_level_drivers".format(abspath))
-    sys.path.insert(0, "{}/nodes".format(abspath))
-    from command import Command
-    from base_device import BaseDevice
-    from si7021_driver import get_si7021_data
+
+    from plexus.nodes.command import Command
+    from plexus.devices.base_device import BaseDevice
+    from plexus.low_level_drivers.si7021_driver import get_si7021_data
 
 
 class SI7021(BaseDevice):
