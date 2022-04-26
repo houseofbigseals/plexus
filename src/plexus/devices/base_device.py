@@ -35,6 +35,16 @@ class BaseDevice(ABC):
         :param command:
         :param kwargs:
         :return:
+
+        available_states:
+        "not_started",  # device is ok, but it is still not started by user
+        "paused",  # device is ok, but user paused it manually
+        "finished",  # device is ok and it was successfully finished by user
+        "works",  # device at work, all things goes ok
+        "warning",  # small error, but you have to know about it
+        "error",  # big error, but device still can work somehow
+        "critical"  # fatal error, device is dead
+
         """
         pass
 

@@ -45,6 +45,7 @@ src/plexus/tests/conduct_test.py
 src/plexus/tests/dual_test_1.py
 src/plexus/tests/dual_test_2.py
 src/plexus/tests/serial_test.py
+src/plexus/tests/simple_node.py
 src/plexus/tests/simple_relay_test.py
 src/plexus/tests/table_search_node.py
 src/plexus/utils/__init__.py
