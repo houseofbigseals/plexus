@@ -100,22 +100,24 @@ if __name__ == '__main__':
 
     list_of_nodes1 = [
         # {"name": "node1", "address": "tcp://10.9.0.23:5566"}
-        {"name": "node1", "address": "tcp://10.9.0.23:5566"},
+        # {"name": "node1", "address": "tcp://10.9.0.23:5566"},
+        {"address": "tcp://127.0.0.1:5568"},
         # {"name": "node2", "address": "tcp://10.9.0.1:5567"},
-        {"name": "node4", "address": "tcp://10.9.0.1:5567"},
-        {"name": "node2", "address": "tcp://10.9.0.12:5567"}
+        # {"name": "node4", "address": "tcp://10.9.0.1:5567"},
+        # {"name": "node2", "address": "tcp://10.9.0.12:5567"}
         # {"name": "node1", "address": "tcp://127.0.0.1:5566"}
         ]
 
     print(args)
     # args = parser.parse_args()
     # client_addr = "tcp://10.9.0.21:5565"
-    client_addr = "tcp://10.9.0.1:5560"
+    # client_addr = "tcp://10.9.0.1:5560"
+    client_addr = "tcp://127.0.0.1:5560"
     # client_addr = "tcp://192.168.100.5:5565"
     # client_addr = "tcp://127.0.0.1:5555"
 
     if flag == "send":
-        client = PlexusUserApi(endpoint=client_addr, name="client", list_of_nodes=list_of_nodes1)
+        client = PlexusUserApi(endpoint=client_addr,  list_of_nodes=list_of_nodes1)
 
         # if args.action == "send": #and :
         msg_to_send = client.user_input_parse(
@@ -140,7 +142,7 @@ if __name__ == '__main__':
             print(i)
         # if len(sys.argv) == 2:
     elif flag == "node_info":
-        client = PlexusUserApi(endpoint=client_addr, name="client", list_of_nodes=list_of_nodes1)
+        client = PlexusUserApi(endpoint=client_addr, list_of_nodes=list_of_nodes1)
         addr_decoded_, decoded_resp_ = client.get_full_node_info(args["node"])
         raw_info = decoded_resp_["data"]["devices"]
         print(" ")
@@ -154,7 +156,7 @@ if __name__ == '__main__':
         print(" ")
 
     elif flag == "device_info":
-        client = PlexusUserApi(endpoint=client_addr, name="client", list_of_nodes=list_of_nodes1)
+        client = PlexusUserApi(endpoint=client_addr, list_of_nodes=list_of_nodes1)
         raw_info = client.get_full_device_info(args["node"], args["device"])
          # = decoded_resp_
         if args["node"] != args["device"]:
@@ -178,7 +180,7 @@ if __name__ == '__main__':
 
 
     elif flag == "command_info":
-        client = PlexusUserApi(endpoint=client_addr, name="client", list_of_nodes=list_of_nodes1)
+        client = PlexusUserApi(endpoint=client_addr, list_of_nodes=list_of_nodes1)
         raw_info = client.get_full_device_info(args["node"], args["device"])
         if args["node"] != args["device"]:
             print(raw_info)

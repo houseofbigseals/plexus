@@ -61,19 +61,21 @@ class PlexusUserApi:
         self.refresh_time = 10  # secs
 
         # then lets create lots of sockets for all other nodes from given list
+
         for n in self.list_of_nodes:
-            if n != self.name:
+            addr = n["address"]
+            if addr != self._endpoint:
                 # create router socket and append it to self._sockets
                 new_socket = self.context.socket(zmq.ROUTER)
                 new_socket.identity = "{}".format(self.name).encode('ascii')
                 # self.logger("{}".format(n["name"]).encode('ascii'))
-                new_socket.connect(n)
+                new_socket.connect(addr)
 
                 # new_stream = ZMQStream(new_socket)
                 # new_stream.on_recv_stream(self.reqv_callback)
 
                 # lets create big dict for every node in list, with
-                self.network_state[n] = {"address": n,
+                self.network_state[addr] = {"address": addr,
                                                  "status": "unknown",
                                                  "last_msg_sent": None,
                                                  "last_msg_received": None,

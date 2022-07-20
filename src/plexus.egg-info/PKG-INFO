@@ -5,9 +5,7 @@ Summary: Simple framework for plant science experiments control
 Home-page: https://github.com/houseofbigseals/plexus
 Author: lab_O_125
 Author-email: aa.buryak@physics.msu.ru
-License: UNKNOWN
 Project-URL: Bug Tracker, https://github.com/houseofbigseals/plexus/issues
-Platform: UNKNOWN
 Classifier: Programming Language :: Python :: 3
 Classifier: License :: OSI Approved :: GPLv3 License
 Classifier: Operating System :: Linux
@@ -175,6 +173,4 @@ python_requires = >=3.6
 where = src
 include=example_package, example_package_2
 ```
-
-
 
