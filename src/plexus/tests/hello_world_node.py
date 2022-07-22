@@ -38,7 +38,7 @@ class HelloWorldNode(BaseNode):
 
 if __name__ == "__main__":
     list_of_nodes1 = [
-        {"address": "tcp://127.0.0.1:5678"}
+        {"address": "tcp://10.9.0.24:5678"}
     ]
     n1 = HelloWorldNode(endpoint=list_of_nodes1[0]['address'], list_of_nodes=list_of_nodes1)
     n1.start()

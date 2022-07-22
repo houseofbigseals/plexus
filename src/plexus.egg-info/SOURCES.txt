@@ -45,6 +45,7 @@ src/plexus/tests/conduct_test.py
 src/plexus/tests/dual_test_1.py
 src/plexus/tests/dual_test_2.py
 src/plexus/tests/hello_world_node.py
+src/plexus/tests/nodes_plus_api.py
 src/plexus/tests/rs232_relay_test.py
 src/plexus/tests/serial_test.py
 src/plexus/tests/simple_node.py

@@ -2,6 +2,8 @@ import uuid
 import time
 import pickle
 from typing import Any
+import pprint
+from datetime import datetime
 
 """
 for now msg is list 
@@ -55,8 +57,27 @@ class Message:
         # create encoded msg, ready to send
         self.msg_encoded = [self.addr.encode('ascii'), b'', pickle.dumps(self.msg_dict)]
 
+
+    def __str__(self):
+        pp = pprint.PrettyPrinter(compact=True, width=80)
+        return pp.pformat(self.msg_dict)
+
     def create_zmq_msg(self):
-        return self.msg_encoded
+        """zmq msg is just list with bytes with b'' as delimiter"""
+        return [self.addr.encode('ascii'), b'', pickle.dumps(self.msg_dict)]
+
+    @classmethod
+    def print_zmq_msg(cls, msg):
+        """we will parse it and pretty print"""
+        addr_decoded, decoded_dict = cls.parse_zmq_msg(msg)
+        # lets make time pretty
+        dt_object = datetime.fromtimestamp(decoded_dict['time'])
+        decoded_dict['time'] = dt_object.strftime("%d/%m/%Y, %H:%M:%S")
+        # and then - pretty print
+        pp = pprint.PrettyPrinter(compact=True, width=80)
+        result = "addr: {}\n".format(addr_decoded)
+        result += pp.pformat(decoded_dict)
+        return result
 
     @classmethod
     def parse_zmq_msg(cls, msg):

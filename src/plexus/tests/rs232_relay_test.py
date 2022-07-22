@@ -282,7 +282,7 @@ if __name__ == "__main__":
     list_of_nodes1 = [
         # {"name": "node104", "address": "tcp://{}:5568".format(my_addr)}
         # {"name": "node2", "address": "tcp://10.9.0.12:5567"},
-        {"address": "tcp://{}:5568".format(my_addr)}
+        {"address": "tcp://{}:5569".format(my_addr)}
     ]
     n1 = StandControlNode(endpoint=list_of_nodes1[0]['address'], list_of_nodes=list_of_nodes1)
     n1.start()
