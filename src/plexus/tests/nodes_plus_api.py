@@ -21,6 +21,7 @@ if __name__ == "__main__":
     command="on",
     data={"channel": 3}
     )
+
     hello_msg = Message(
     addr="tcp://10.9.0.24:5569",
     device="tcp://10.9.0.24:5569",

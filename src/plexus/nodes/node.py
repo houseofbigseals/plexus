@@ -63,9 +63,9 @@ class BaseNode(ABC, Process):
 
     # ===============================================================================
 
-    def __init__(self, endpoint: str, list_of_nodes: list, is_daemon: bool = True):
+    def __init__(self, endpoint: str, network: list, is_daemon: bool = True):
         """
-        :param list_of_nodes: must be list with addrs strings like
+        :param network: must be list with addrs strings like
         [ "tcp://192.168.100.4:5566", ... , "tcp://192.168.100.4:5567" ]
 
         :param endpoint: address like "tcp://192.168.100.4:5567"
@@ -81,7 +81,7 @@ class BaseNode(ABC, Process):
         # container to keep all local devices in one place
         self._devices = list()
         self.loop = None
-        self.list_of_nodes = list_of_nodes
+        self.network = network
         self.network_state = dict()
 
         self.info = None  # by default no devices in node, so None is info
@@ -103,13 +103,15 @@ class BaseNode(ABC, Process):
         info_command = Command(
             name="info",
             annotation="full info about node and its devices",
-            output_kwargs={"info_dict": "dict"}
+            output_kwargs={"info_dict": "dict"},
+            action=self.get_image
         )
 
         ping_command = Command(
             name="ping",
             annotation="simple ping",
-            output_kwargs={"ack_str": "str"}
+            output_kwargs={"ack_str": "str"},
+            action=self.on_ping
         )
 
         # start_command = Command(
@@ -127,11 +129,19 @@ class BaseNode(ABC, Process):
         kill_command = Command(
             name="kill",
             annotation="command to fully stop work of this process",
-            output_kwargs={"ack_str": "str"}
+            output_kwargs={"ack_str": "str"},
+            action=self.suicide
         )
         self.system_commands = [info_command, ping_command, kill_command]
 
     # ========= tech methods, those must not be redefined by user ==========
+
+    def add_command(self, command):
+        """simple wrapper for looking serious """
+        self.system_commands.extend(command)
+
+    def on_ping(self, args):
+        return self.network_state
 
     def run(self):
         """
@@ -151,7 +161,7 @@ class BaseNode(ABC, Process):
         self.logger("finish creating input socket")
 
         # then lets create lots of sockets for all other nodes from given list
-        for n in self.list_of_nodes:
+        for n in self.network:
             addr = n["address"]
             if addr != self._address:
                 self.logger("start creating out socket")
@@ -162,7 +172,7 @@ class BaseNode(ABC, Process):
                 new_socket.connect(addr)
                 new_stream = ZMQStream(new_socket)
                 new_stream.on_recv_stream(self.reqv_callback)
-                # lets create big dict for every node in list, with
+                # let`s create big dict for every node in list, with
                 self.network_state[addr] = {"address": addr,
                                         "status": "unknown",
                                         "last_msg_sent": None,
@@ -270,7 +280,7 @@ class BaseNode(ABC, Process):
 
         if decoded_dict["command"] == "resp":
             # so we dont care about "device" field
-            # it means that it it resp to us and we must not answer
+            # it means that it is resp to us and we must not answer
             # answered_resp = self.extract_awaiting_msg(decoded_dict["msg_id"])
             self.logger("command resp received in msg with id {}".format(decoded_dict["msg_id"]))
             self.logger("msg body is {}".format(decoded_dict))
@@ -336,55 +346,89 @@ class BaseNode(ABC, Process):
                 self.custom_request_parser(stream, reqv_msg)
 
     def handle_system_msgs(self, stream, reqv_msg: Message):
-        """handler to base commands, those can be sent to every node by another node"""
-        if reqv_msg.command == "info":
-            # it means that it it reqv to us and we must answer
-            # in answer we need to send all info about node and its devices
-            self.logger("command info received")
-            self.info = self.get_image()
+        """simply execute method with name = 'command' and args = **kwargs"""
 
-            res_msg = Message(
-                addr=reqv_msg.addr,
-                device=reqv_msg.device,
-                command="resp",
-                msg_id=reqv_msg.msg_id,
-                time_=time.time(),
-                data=self.info
-            )
-            self.send(stream, res_msg)
+        command = reqv_msg.command
+        kwargs = reqv_msg["data"]
+        command_found = False
 
-        elif reqv_msg.command == "ping":
-            # it means that it it reqv to us and we must answer
-            # in answer we need to send all info about node and its devices
-            self.logger("command ping received")
-            res_msg = Message(
-                addr=reqv_msg.addr,
-                device=reqv_msg.device,
-                command="resp",
-                msg_id=reqv_msg.msg_id,
-                time_=time.time(),
-                data="ack"  # TODO add here full network map to use in hot_plug situation
-            )
-            self.send(stream, res_msg)
-            # we have to send resp with standard info about this node and its devices
+        # TODO make handling system commands
+        for com in self.system_commands:
+            if com.name == command and not command_found:
+                command_found = True
+                self.logger("command {} received".format(com.name))
+                try:
+                    res_msg = Message(
+                        addr=reqv_msg.addr,
+                        device=reqv_msg.device,
+                        command="resp",
+                        msg_id=reqv_msg.msg_id,
+                        time_=time.time(),
+                        data=com.action(**kwargs)
+                    )
+                    self.send(stream, res_msg)  # is it good?
+                    return res_msg
 
-        elif reqv_msg.command == "kill":
-            # it means that it it reqv to us and we must answer
-            # in answer we need to send all info about node and its devices
-            self.logger("command ping received")
-            res_msg = Message(
-                addr=reqv_msg.addr,
-                device=reqv_msg.device,
-                command="resp",
-                msg_id=reqv_msg.msg_id,
-                time_=time.time(),
-                data="ack"
-            )
-            self.send(stream, res_msg)
-            # then kill itself
-            self.suicide()
+                except Exception as e:
+                    err_msg = Message(
+                        addr=reqv_msg.addr,
+                        device=reqv_msg.device,
+                        command="resp",
+                        msg_id=reqv_msg.msg_id,
+                        time_=time.time(),
+                        data=str(e)
+                    )
+                    self.send(stream, err_msg)  # is it good?
+                    return err_msg  # is it good?
 
-        else:
+        # if reqv_msg.command == "info":
+        #     # it means that it is reqv to us and we must answer
+        #     # in answer we need to send all info about node and its devices
+        #     self.logger("command info received")
+        #     self.result
+        #
+        #     res_msg = Message(
+        #         addr=reqv_msg.addr,
+        #         device=reqv_msg.device,
+        #         command="resp",
+        #         msg_id=reqv_msg.msg_id,
+        #         time_=time.time(),
+        #         data=self.info
+        #     )
+        #     self.send(stream, res_msg)
+        #
+        # elif reqv_msg.command == "ping":
+        #     # it means that it is reqv to us and we must answer
+        #     # in answer we need to send all info about node and its devices
+        #     self.logger("command ping received")
+        #     res_msg = Message(
+        #         addr=reqv_msg.addr,
+        #         device=reqv_msg.device,
+        #         command="resp",
+        #         msg_id=reqv_msg.msg_id,
+        #         time_=time.time(),
+        #         data="ack"  # TODO add here full network map to use in hot_plug situation
+        #     )
+        #     self.send(stream, res_msg)
+        #     # we have to send resp with standard info about this node and its devices
+        #
+        # elif reqv_msg.command == "kill":
+        #     # it means that it it reqv to us and we must answer
+        #     # in answer we need to send all info about node and its devices
+        #     self.logger("command ping received")
+        #     res_msg = Message(
+        #         addr=reqv_msg.addr,
+        #         device=reqv_msg.device,
+        #         command="resp",
+        #         msg_id=reqv_msg.msg_id,
+        #         time_=time.time(),
+        #         data="ack"
+        #     )
+        #     self.send(stream, res_msg)
+        #     # then kill itself
+        #     self.suicide()
+
+        if not command_found:
             self.handle_custom_system_msgs(stream, reqv_msg)
 
     def suicide(self):
