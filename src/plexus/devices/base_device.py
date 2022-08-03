@@ -4,12 +4,13 @@ from plexus.nodes.command import Command
 from plexus.utils.logger import PrintLogger
 
 
-class BaseDevice(ABC):
+# class BaseDevice(ABC):
+class BaseDevice():
     """
 
     """
     # abstract method, that must be overridden in the child class
-    @abstractmethod
+    # @abstractmethod
     def device_commands_handler(self, command, **kwargs):
         """
         here developer can add handling of its own commands
@@ -20,14 +21,14 @@ class BaseDevice(ABC):
         :param kwargs:
         :return:
 
-        available_states:
-        "not_started",  # device is ok, but it is still not started by user
-        "paused",  # device is ok, but user paused it manually
-        "finished",  # device is ok and it was successfully finished by user
-        "works",  # device at work, all things goes ok
-        "warning",  # small error, but you have to know about it
-        "error",  # big error, but device still can work somehow
-        "critical"  # fatal error, device is dead
+        # available_states:
+        # "not_started",  # device is ok, but it is still not started by user
+        # "paused",  # device is ok, but user paused it manually
+        # "finished",  # device is ok and it was successfully finished by user
+        # "works",  # device at work, all things goes ok
+        # "warning",  # small error, but you have to know about it
+        # "error",  # big error, but device still can work somehow
+        # "critical"  # fatal error, device is dead
 
         """
         pass
@@ -57,31 +58,6 @@ class BaseDevice(ABC):
         )
 
         self.add_command(info_command)
-
-        # if user needs that commands, he has to write them by himself
-
-        # start_command = Command(
-        #     name="start",
-        #     annotation="command to do some mystical preparation work like low-level calibration",
-        #     output_kwargs={"ack_str": "str"}
-        #
-        # )
-        #
-        # stop_command = Command(
-        #     name="stop",
-        #     annotation="command to do some mystical pausing work like closing valves or smth",
-        #     output_kwargs={"ack_str": "str"}
-        # )
-        #
-        # kill_command = Command(
-        #     name="kill",
-        #     annotation="command to fully stop work of device",
-        #     output_kwargs={"ack_str": "str"}
-        # )
-
-
-        # user have to manually add his custom commands to that list by add_command() function
-
         self._image = self.get_image()
 
     def add_command(self, command):
@@ -108,22 +84,26 @@ class BaseDevice(ABC):
             for com in self._available_commands:
                 if com.name == command and not command_found:
                     command_found = True
+                    print("command {} found".format(command))  # TODO remove
                     try:
-                        return str(com(**kwargs))  # is it good?
+                        res = str(com(**kwargs))
+                        print("result of command '{}' is '{}'".format(command, res))  # TODO remove
+                        return res  # is it good?
                     except Exception as e:
+                        print("error from command '{}' is '{}'".format(command, e))  # TODO remove
                         return str(e)   # is it good?
 
             if not command_found:
                 # must be redefined by user even if it is empty - then fill it with 'pass'
                 return self.device_commands_handler(command, **kwargs)
 
-    def __setattr__(self, key, value):
-        # do we even need that list of states? mb remove them
-        # Set of available states must not be changed
-        if key == '_available_states' and hasattr(self, '_available_states'):
-            raise AttributeError('Set of available states cannot be changed')
-        else:
-            self.__dict__[key] = value
+    # def __setattr__(self, key, value):
+    #     # do we even need that list of states? mb remove them
+    #     # Set of available states must not be changed
+    #     if key == '_available_states' and hasattr(self, '_available_states'):
+    #         raise AttributeError('Set of available states cannot be changed')
+    #     else:
+    #         self.__dict__[key] = value
 
 
 

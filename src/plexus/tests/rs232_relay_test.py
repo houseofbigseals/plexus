@@ -138,17 +138,17 @@ class StandControlNode(BaseNode):
         # )
 
         # additional system command
-        one_cycle_command = Command(
-            name="one_cycle",
-            annotation="one cycle of measurement on conduct stand",
-            output_kwargs={"ack_msg": "ok"}
-        )
-
-        status_command = Command(
-            name="exp_status",
-            annotation="returns short info about experiment status",
-            output_kwargs={"status_string": "status"}
-        )
+        # one_cycle_command = Command(
+        #     name="one_cycle",
+        #     annotation="one cycle of measurement on conduct stand",
+        #     output_kwargs={"ack_msg": "ok"}
+        # )
+        #
+        # status_command = Command(
+        #     name="exp_status",
+        #     annotation="returns short info about experiment status",
+        #     output_kwargs={"status_string": "status"}
+        # )
         self._annotation = "control node for conductivity control stand with mixer"
         # self._devices.extend([self.avr_cond_dev, self.avr_relay_dev])
         self._devices.extend([self.avr_relay_dev])

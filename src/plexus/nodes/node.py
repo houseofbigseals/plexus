@@ -83,11 +83,11 @@ class BaseNode(ABC, Process):
         self.loop = None
         self.network = network
         self.network_state = dict()
+        self.system_commands = list()
 
         self.info = None  # by default no devices in node, so None is info
         # we can update info later
         # for example - in run()
-        # self.custom_commands = list()  # by default there is no custom commands
 
         # Prepare our context and sockets
         self.context = zmq.Context()
@@ -96,16 +96,18 @@ class BaseNode(ABC, Process):
         self.ping_timer = None
         self.logger("end init")
         self._status = "not_started"
-        self.ping_period = 1000
+        self.ping_period = 1000  # ms
         self._sockets = dict()
         self._annotation = "abstract base node"
 
+        # add commands
         info_command = Command(
             name="info",
             annotation="full info about node and its devices",
             output_kwargs={"info_dict": "dict"},
             action=self.get_image
         )
+        self.add_command(info_command)
 
         ping_command = Command(
             name="ping",
@@ -113,6 +115,7 @@ class BaseNode(ABC, Process):
             output_kwargs={"ack_str": "str"},
             action=self.on_ping
         )
+        self.add_command(ping_command)
 
         kill_command = Command(
             name="kill",
@@ -120,13 +123,17 @@ class BaseNode(ABC, Process):
             output_kwargs={"ack_str": "str"},
             action=self.suicide
         )
-        self.system_commands = [info_command, ping_command, kill_command]
+        self.add_command(kill_command)
 
     # ========= tech methods, those must not be redefined by user ==========
 
     def add_command(self, command):
         """simple wrapper for looking serious """
         self.system_commands.extend([command])
+
+    def add_device(self, device_):
+        """simple wrapper for looking serious """
+        self._devices.extend([device_])
 
     def on_ping(self, args):
         return self.network_state
@@ -148,7 +155,7 @@ class BaseNode(ABC, Process):
         self.network_state = dict()
         self.logger("finish creating input socket")
 
-        # then lets create lots of sockets for all other nodes from given list
+        # then lets create lots of sockets for all other nodes from given network list
         for n in self.network:
             addr = n["address"]
             if addr != self._address:
@@ -156,10 +163,10 @@ class BaseNode(ABC, Process):
                 # create router socket and append it to self._sockets
                 new_socket = self.context.socket(zmq.ROUTER)
                 new_socket.identity = "{}".format(self.name).encode('ascii')
-                # self.logger("{}".format(n["name"]).encode('ascii'))
                 new_socket.connect(addr)
                 new_stream = ZMQStream(new_socket)
                 new_stream.on_recv_stream(self.reqv_callback)
+
                 # let`s create big dict for every node in list, with
                 self.network_state[addr] = {"address": addr,
                                         "status": "unknown",
@@ -170,20 +177,12 @@ class BaseNode(ABC, Process):
                                          }
                 self.logger("self network state: {}".format(self.network_state))
 
-                # for now we will keep socket instance,  stream instance, last_time, and status
-                # self._sockets[n["name"]] = {
-                #     "stream": new_stream,
-                #      "socket": new_socket,
-                #      "address": n["address"],
-                #      "status": "not_started"
-                #      }
-                # self.logger(self._sockets[n["name"]])
-
+        # periodical ping timer created by default
         self.ping_timer = PeriodicCallback(self.on_ping_timer, self.ping_period)
         #self.death_timer = PeriodicCallback(self.on_death_timer, self.ping_period)
 
         # preparations by user like creating PeriodicalCallbacks
-        self.custom_preparation()
+        self.custom_preparation()  # <--- here!
 
         self.info = self.get_image()
 
@@ -238,12 +237,12 @@ class BaseNode(ABC, Process):
         decoded_msg = Message.create_msg_from_addr_and_dict(addr_decoded=addr_decoded, decoded_dict=decoded_dict)
         self.logger(decoded_dict)
 
-        # let`s check if that node in our noeds list:
+        # let`s check if that node in our nodes list:
         if addr_decoded in self.network_state.keys():
             self.network_state[addr_decoded]["last_msg_received"] = time.time()
             self.logger("self network state: {}".format(self.network_state))
         else:
-            self.logger("found new node by irs reqv: {}".format(addr_decoded))
+            self.logger("found new node by its reqv: {}".format(addr_decoded))
             self.logger("we will add it to our network state container")
             # create router socket and append it to self._network_state
             new_socket = self.context.socket(zmq.ROUTER)
@@ -313,6 +312,7 @@ class BaseNode(ABC, Process):
                         )
                         self.logger("try to send resp {}".format(res_msg))
                         self.send(stream, res_msg)
+
                     except Exception as e:
                         error_str = "error while calling device: {}".format(e)
                         self.logger(error_str)
@@ -327,9 +327,10 @@ class BaseNode(ABC, Process):
                         self.logger("try to send resp with error {}".format(res_msg))
                         self.send(stream, res_msg)
 
-            # this is shit and we dont want to handle it
+            # this is shit and we don`t want to handle it
             if not found_flag:
-                self.logger("command {} is not system, trying to use user handler".format(decoded_dict["command"]))
+                self.logger("command {} is not system or for any device, trying to use user handler".format(decoded_dict["command"]))
+
                 # 5) may be user want to handle it somehow
                 self.custom_request_parser(stream, reqv_msg)
 
@@ -346,13 +347,18 @@ class BaseNode(ABC, Process):
                 command_found = True
                 self.logger("command {} received".format(com.name))
                 try:
+                    if kwargs:
+                        res = com.action(**kwargs)
+                    else:
+                        res = com.action()
+
                     res_msg = Message(
                         addr=reqv_msg.addr,
                         device=reqv_msg.device,
                         command="resp",
                         msg_id=reqv_msg.msg_id,
                         time_=time.time(),
-                        data=com.action(**kwargs)
+                        data=res
                     )
                     self.send(stream, res_msg)  # is it good?
                     return res_msg
@@ -364,7 +370,7 @@ class BaseNode(ABC, Process):
                         command="resp",
                         msg_id=reqv_msg.msg_id,
                         time_=time.time(),
-                        data=str(e)
+                        data="Error:"+str(e)
                     )
                     self.send(stream, err_msg)  # is it good?
                     return err_msg  # is it good?

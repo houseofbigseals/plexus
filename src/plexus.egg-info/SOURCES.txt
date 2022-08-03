@@ -10,6 +10,7 @@ src/plexus.egg-info/top_level.txt
 src/plexus/devices/__init__.py
 src/plexus/devices/base_device.py
 src/plexus/devices/bmp180_device.py
+src/plexus/devices/datetime_device.py
 src/plexus/devices/led_uart_device.py
 src/plexus/devices/numlock_device.py
 src/plexus/devices/rpi_gpio_relay_device.py
@@ -45,6 +46,7 @@ src/plexus/tests/conduct_test.py
 src/plexus/tests/dual_test_1.py
 src/plexus/tests/dual_test_2.py
 src/plexus/tests/hello_world_node.py
+src/plexus/tests/node_with_device.py
 src/plexus/tests/nodes_plus_api.py
 src/plexus/tests/rs232_relay_test.py
 src/plexus/tests/serial_test.py

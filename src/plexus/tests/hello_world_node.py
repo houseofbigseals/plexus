@@ -11,10 +11,9 @@ class HelloWorldNode(BaseNode):
     """
 
     """
-    def __init__(self, endpoint: str, list_of_nodes: list, is_daemon: bool = True):
-        super().__init__(endpoint, list_of_nodes, is_daemon)
+    def __init__(self, endpoint: str, network: list, is_daemon: bool = True):
+        super().__init__(endpoint, network, is_daemon)
         self._annotation = "node for system tests"
-        # self._devices.extend([])
         self.sleep_timer_delay = 0  # global sleep interval can be modified inside system_timer in ms
         self.time_quant = 10  # ms
 
@@ -37,9 +36,9 @@ class HelloWorldNode(BaseNode):
 
 
 if __name__ == "__main__":
-    list_of_nodes1 = [
+    network1 = [
         {"address": "tcp://10.9.0.24:5678"}
     ]
-    n1 = HelloWorldNode(endpoint=list_of_nodes1[0]['address'], list_of_nodes=list_of_nodes1)
+    n1 = HelloWorldNode(endpoint=network1[0]['address'], network=network1)
     n1.start()
     n1.join()
