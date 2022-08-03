@@ -33,6 +33,7 @@ class AVRRelayDevice(BaseDevice):
             output_kwargs={"answer": "str"},
             input_kwargs={"channel": "int"}
         )
+        self.add_command(on_command)
 
         off_command = Command(
             name="off",
@@ -40,14 +41,17 @@ class AVRRelayDevice(BaseDevice):
             output_kwargs={"answer": "str"},
             input_kwargs={"channel": "int"}
         )
+        self.add_command(off_command)
 
         reboot = Command(
             name="reboot",
             annotation="reboot avr device by set DTR off and on",
-            output_kwargs={"answer": "str"}
+            output_kwargs={"answer": "str"},
+            action=self._relay.reboot()
         )
+        self.add_command(reboot)
 
-        self._available_commands.extend([on_command, off_command, reboot])
+        # self._available_commands.extend([on_command, off_command, reboot])
         self._state = "off"
         self._status = "work"
         print("awailable commands for me {}".format(self._available_commands))

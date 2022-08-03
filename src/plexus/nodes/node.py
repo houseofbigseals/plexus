@@ -250,7 +250,7 @@ class BaseNode(ABC, Process):
         decoded_msg = Message.create_msg_from_addr_and_dict(addr_decoded=addr_decoded, decoded_dict=decoded_dict)
         self.logger(decoded_dict)
 
-        # lets check if that node in our noeds list:
+        # let`s check if that node in our noeds list:
         if addr_decoded in self.network_state.keys():
             self.network_state[addr_decoded]["last_msg_received"] = time.time()
             self.logger("self network state: {}".format(self.network_state))
@@ -349,7 +349,7 @@ class BaseNode(ABC, Process):
         """simply execute method with name = 'command' and args = **kwargs"""
 
         command = reqv_msg.command
-        kwargs = reqv_msg["data"]
+        kwargs = reqv_msg.data
         command_found = False
 
         # TODO make handling system commands
