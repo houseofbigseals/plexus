@@ -114,18 +114,6 @@ class BaseNode(ABC, Process):
             action=self.on_ping
         )
 
-        # start_command = Command(
-        #     name="start",
-        #     annotation="command to do some mystical preparation work like low-level calibration",
-        #     output_kwargs={"ack_str": "str"}
-        # )
-        #
-        # stop_command = Command(
-        #     name="stop",
-        #     annotation="command to do some mystical pausing work like closing valves or smth",
-        #     output_kwargs={"ack_str": "str"}
-        # )
-        #
         kill_command = Command(
             name="kill",
             annotation="command to fully stop work of this process",
@@ -138,7 +126,7 @@ class BaseNode(ABC, Process):
 
     def add_command(self, command):
         """simple wrapper for looking serious """
-        self.system_commands.extend(command)
+        self.system_commands.extend([command])
 
     def on_ping(self, args):
         return self.network_state
@@ -207,7 +195,7 @@ class BaseNode(ABC, Process):
         # go to endless loop with reading messages and checking PeriodicalCallbacks, created by user
         self.loop.start()
 
-    def get_image(self):
+    def get_image(self, **kwargs):
         """ creates info dict for this node """
         device_images = {d.name: d.get_image() for d in self._devices}
 
@@ -279,7 +267,7 @@ class BaseNode(ABC, Process):
         self.logger(decoded_dict["command"])
 
         if decoded_dict["command"] == "resp":
-            # so we dont care about "device" field
+            # so we don`t care about "device" field
             # it means that it is resp to us and we must not answer
             # answered_resp = self.extract_awaiting_msg(decoded_dict["msg_id"])
             self.logger("command resp received in msg with id {}".format(decoded_dict["msg_id"]))
