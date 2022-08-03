@@ -311,9 +311,9 @@ class BaseNode(ABC, Process):
                     # then call selected method on this device with that params
                     try:
                         if decoded_dict["data"]:  # because it can be empty or b'' or None or smth same
-                            result = device_.call(decoded_dict["command"], **decoded_dict["data"])
+                            result = device_(decoded_dict["command"], **decoded_dict["data"])
                         else:
-                            result = device_.call(decoded_dict["command"], **{})
+                            result = device_(decoded_dict["command"], **{})
 
                         res_msg = Message(
                             addr=addr_decoded,

@@ -7,20 +7,11 @@ import sys
 import csv
 
 
-
-# custom path imports
-try:
-    from plexus.nodes.node import BaseNode, PeriodicCallback
-    from plexus.nodes.message import Message
-    from plexus.nodes.command import Command
-    from plexus.utils.console_client import PlexusUserApi
-    from plexus.devices.simple_avr_relay_device import AVRRelayDevice
-    from plexus.devices.simple_avr_cond_device import AVRCondDevice
-except Exception as e:
-    from src.plexus.nodes.node import BaseNode, PeriodicCallback, Message
-    from src.plexus.utils.console_client_api import PlexusUserApi
-    from src.plexus.devices.simple_avr_relay_device import AVRRelayDevice
-    from src.plexus.devices.simple_avr_cond_device import AVRCondDevice
+from plexus.nodes.node import BaseNode, PeriodicCallback, Message
+from plexus.utils.console_client_api import PlexusUserApi
+from plexus.nodes.command import Command
+from plexus.devices.simple_avr_relay_device import AVRRelayDevice
+from plexus.devices.simple_avr_cond_device import AVRCondDevice
 
 
 # def approximation_with_r2(func, x, y):
@@ -210,10 +201,10 @@ class StandControlNode(BaseNode):
         # self.logger(conductivity)
         if self.blink_flag:
             self.blink_flag = False
-            self.avr_relay_dev.call(command="off", **{"channel": 1})
+            self.avr_relay_dev(command="off", **{"channel": 1})
         else:
             self.blink_flag = True
-            self.avr_relay_dev.call(command="on", **{"channel": 1})
+            self.avr_relay_dev(command="on", **{"channel": 1})
 
 
     def on_system_timer(self):
@@ -226,16 +217,16 @@ class StandControlNode(BaseNode):
         else:
             if self.system_stage_flag == "need_dozing":
                 # it means that we have to work
-                self.avr_relay_dev.call(command="on", **{"channel": self.dosing_pump})
+                self.avr_relay_dev(command="on", **{"channel": self.dosing_pump})
                 self.system_stage_flag = "need_mixing"
                 self.sleep_timer_delay = 3000
             elif self.system_stage_flag == "need_mixing":
-                self.avr_relay_dev.call(command="off", **{"channel": self.dosing_pump})
-                self.avr_relay_dev.call(command="on", **{"channel": self.mixing_pump})
+                self.avr_relay_dev(command="off", **{"channel": self.dosing_pump})
+                self.avr_relay_dev(command="on", **{"channel": self.mixing_pump})
                 self.system_stage_flag = "need_draining"
                 self.sleep_timer_delay = 480000
             elif self.system_stage_flag == "need_draining":
-                self.avr_relay_dev.call(command="off", **{"channel": self.mixing_pump})
+                self.avr_relay_dev(command="off", **{"channel": self.mixing_pump})
                 # here must be code for draining 40 ml of water out from system
                 self.system_stage_flag = "waiting for the start of cycle"
 

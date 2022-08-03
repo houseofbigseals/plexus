@@ -49,7 +49,6 @@ src/plexus/tests/nodes_plus_api.py
 src/plexus/tests/rs232_relay_test.py
 src/plexus/tests/serial_test.py
 src/plexus/tests/simple_node.py
-src/plexus/tests/simple_relay_test.py
 src/plexus/tests/table_search_node.py
 src/plexus/utils/__init__.py
 src/plexus/utils/config_parser.py
