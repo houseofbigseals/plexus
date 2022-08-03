@@ -45,7 +45,7 @@ class MySQLdbHandler:
     | time   | timestamp            | NO   |     | CURRENT_TIMESTAMP | on update CURRENT_TIMESTAMP |
     | level  | tinyint(4)           | YES  |     | NULL              |                             |
     | node   | varchar(100)         | YES  |     | NULL              |                             |
-    | msg    | varchar(2000)        | YES  |     | NULL              |                             |
+    | msg    | varchar(500)        | YES  |     | NULL              |                             |
     +--------+----------------------+------+-----+-------------------+-----------------------------+
 
 
@@ -68,7 +68,7 @@ class MySQLdbHandler:
     | is_finished           | smallint(5) unsigned | YES  |     | NULL                |                             |
     +-----------------------+----------------------+------+-----+---------------------+-----------------------------+
 
-    raw_data is table for data from all devices:
+    raw_data is table for data from all devices - one sensor - one table:
 
     +-----------+----------------------+------+-----+-------------------+-----------------------------+
     | Field     | Type                 | Null | Key | Default           | Extra                       |

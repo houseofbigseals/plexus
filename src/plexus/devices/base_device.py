@@ -1,7 +1,7 @@
 
 from abc import ABC, abstractmethod
-from src.plexus.nodes.command import Command
-from src.plexus.utils.logger import PrintLogger
+from plexus.nodes.command import Command
+from plexus.utils.logger import PrintLogger
 
 
 class BaseDevice(ABC):
@@ -86,7 +86,7 @@ class BaseDevice(ABC):
 
     def add_command(self, command):
         """simple wrapper for looking serious """
-        self._available_commands.extend(command)
+        self._available_commands.extend([command])
 
     def get_image(self):
         """ get string representation of device for user information """
